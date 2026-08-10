@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>D4X Session 01 — Wick UI Sync</title>
+  <style>
+  /* ============================================================
+     Fonts
+     ============================================================ */
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&display=swap');
+
+  /* ============================================================
+     base.css — colors, reset, layout, typography
+     ============================================================ */
+  :root {
+    --wu-color-gray-lead: oklch(47.8% 0.0244 255);
+    --wu-color-gray-subtle: oklch(68.9% 0 0);
+    --wu-color-gray-40: oklch(88.2% 0 0);
+    --wu-color-gray-10: oklch(97% 0 0);
+    --wu-color-blue-p: oklch(61.6% 0.1696 251.2);
+    --wu-color-blue-deep: oklch(45.1% 0.1159 254.5);
+    --wu-color-green-deep: oklch(49.9% 0.1603 139.9);
+    --wu-color-orange-deep: oklch(72.3% 0.1755 56.7);
+    --wu-color-red-deep: oklch(53.1% 0.2178 29.2);
+
+    --slide-bg: #fff;
+    --slide-text: var(--wu-color-gray-lead);
+    --slide-text-subtle: var(--wu-color-gray-subtle);
+    --slide-accent: var(--wu-color-blue-p);
+    --slide-border: var(--wu-color-gray-40);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: 'Fira Sans', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--slide-text);
+    background: var(--slide-bg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .slides { width: 100vw; height: 100vh; overflow: hidden; position: relative; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 4.5rem 7rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .slide.active { opacity: 1; pointer-events: auto; }
+  .slide.center { align-items: center; text-align: center; }
+
+  h1 { font-size: 3.75rem; font-weight: 700; color: var(--slide-text); line-height: 1.1; letter-spacing: -0.02em; }
+  h2 { font-size: 2.75rem; font-weight: 600; color: var(--slide-text); line-height: 1.15; }
+  p  { font-size: 1.2rem; font-weight: 400; color: var(--slide-text-subtle); line-height: 1.6; }
+  strong { font-weight: 600; color: var(--slide-text); }
+  .accent { color: var(--slide-accent); }
+  code { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 0.9em; background: var(--wu-color-gray-10); border: 1px solid var(--slide-border); border-radius: 4px; padding: 0.1rem 0.4rem; }
+  a.link { color: var(--slide-accent); font-weight: 600; text-decoration: none; border-bottom: 2px solid currentColor; }
+
+  .kicker {
+    font-size: 0.85rem; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--slide-accent); margin-bottom: 1.25rem;
+  }
+
+  /* Title slide */
+  .title-slide { border-left: 6px solid var(--slide-accent); }
+
+  /* Divider slide */
+  .slide.divider { background: var(--slide-accent); }
+  .slide.divider .kicker { color: oklch(100% 0 0 / 70%); }
+  .slide.divider h2 { color: #fff; }
+  .slide.divider p  { color: oklch(100% 0 0 / 75%); }
+
+  /* Simple list — one line title + optional description */
+  .simple-list { list-style: none; margin-top: 2rem; display: flex; flex-direction: column; width: 100%; max-width: 780px; }
+  .simple-list li { display: flex; align-items: baseline; gap: 1.25rem; padding: 1rem 0; border-bottom: 1px solid var(--slide-border); }
+  .simple-list li:last-child { border-bottom: none; }
+  .sl-num   { font-size: 0.85rem; font-weight: 700; color: var(--slide-accent); width: 26px; flex-shrink: 0; }
+  .sl-title { font-size: 1.2rem; font-weight: 700; color: var(--slide-text); }
+  .sl-desc  { font-size: 1rem;   color: var(--slide-text-subtle); margin-top: 0.15rem; }
+
+  /* Demo cue card — big single stop marker, minimal text, for live-demo transitions */
+  .demo-stop { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--slide-text-subtle); margin-top: 2.5rem; }
+  .demo-stop .n { color: var(--slide-accent); }
+  .cue-list { list-style: none; margin-top: 1.75rem; display: flex; flex-direction: column; gap: 0.6rem; }
+  .cue-list li { font-size: 1.1rem; color: var(--slide-text-subtle); }
+  .cue-list li::before { content: '→ '; color: var(--slide-accent); font-weight: 700; }
+
+  /* Package grid — "what is Wick UI" intro */
+  .pkg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; width: 100%; max-width: 680px; margin-top: 2rem; }
+  .pkg-card { border: 1px solid var(--slide-border); border-radius: 10px; padding: 1rem 1.25rem; }
+  .pkg-name { font-size: 1.05rem; font-weight: 700; color: var(--slide-accent); font-family: monospace; }
+  .pkg-desc { font-size: 0.95rem; color: var(--slide-text-subtle); margin-top: 0.3rem; }
+
+
+  /* People chips — shoutout (no photos) */
+  .team-row { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+  .team-chip { padding: 0.7rem 1.5rem; border-radius: 10px; border: 2px solid var(--slide-accent); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
+  .team-chip .name { color: var(--slide-accent); font-size: 1.3rem; font-weight: 700; }
+  .team-chip .role { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--slide-text-subtle); }
+
+  /* Speakers — photos */
+  .speakers-row { display: flex; gap: 3.5rem; margin-top: 2.5rem; flex-wrap: wrap; }
+  .speaker { display: flex; flex-direction: column; align-items: center; gap: 0.85rem; }
+  .speaker img { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 3px solid var(--slide-border); }
+  .speaker-name { font-size: 1.15rem; font-weight: 700; color: var(--slide-text); }
+  .speaker-role { font-size: 0.85rem; color: var(--slide-text-subtle); margin-top: -0.5rem; }
+
+  .slide-nav { position: fixed; bottom: 1.5rem; right: 1.5rem; display: flex; gap: 0.5rem; z-index: 100; }
+  .slide-nav button {
+    font-family: inherit; font-size: 0.875rem; padding: 0.4rem 0.9rem;
+    border: 1px solid var(--slide-border); border-radius: 6px;
+    background: var(--wu-color-gray-10); color: var(--slide-text); cursor: pointer;
+  }
+  .slide-nav button:hover { background: #fff; }
+  .slide-counter { position: fixed; bottom: 1.75rem; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--slide-text-subtle); }
+  .progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: var(--slide-accent); width: 0; z-index: 100; transition: width 0.3s ease; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes riseIn { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+    .slide.active .kicker, .slide.active h1, .slide.active h2 { animation: riseIn 0.5s ease both; }
+    .slide.active > p { animation: riseIn 0.5s ease 0.1s both; }
+    .slide.active .simple-list li, .slide.active .cue-list li { animation: riseIn 0.45s ease both; }
+    .slide.active .simple-list li:nth-child(1), .slide.active .cue-list li:nth-child(1){animation-delay:.1s}
+    .slide.active .simple-list li:nth-child(2), .slide.active .cue-list li:nth-child(2){animation-delay:.16s}
+    .slide.active .simple-list li:nth-child(3), .slide.active .cue-list li:nth-child(3){animation-delay:.22s}
+    .slide.active .simple-list li:nth-child(4), .slide.active .cue-list li:nth-child(4){animation-delay:.28s}
+    .slide.active .simple-list li:nth-child(5), .slide.active .cue-list li:nth-child(5){animation-delay:.34s}
+    .slide.active .simple-list li:nth-child(6), .slide.active .cue-list li:nth-child(6){animation-delay:.40s}
+    .slide.active .pkg-card, .slide.active .team-chip, .slide.active .speaker { animation: riseIn 0.4s ease both; }
+    .slide.active .pkg-card:nth-child(1), .slide.active .team-chip:nth-child(1), .slide.active .speaker:nth-child(1){animation-delay:.1s}
+    .slide.active .pkg-card:nth-child(2), .slide.active .team-chip:nth-child(2), .slide.active .speaker:nth-child(2){animation-delay:.16s}
+    .slide.active .pkg-card:nth-child(3), .slide.active .team-chip:nth-child(3), .slide.active .speaker:nth-child(3){animation-delay:.22s}
+    .slide.active .pkg-card:nth-child(4), .slide.active .team-chip:nth-child(4){animation-delay:.28s}
+  }
+
+  /* Print — one slide per page, no overlay stacking */
+  @media print {
+    .slide { position: static; opacity: 1 !important; page-break-after: always; padding: 2rem 3rem; }
+    .slides { height: auto; overflow: visible; }
+    .slide-nav, .progress-bar, .slide-counter { display: none !important; }
+  }
+  </style>
+</head>
+<body>
+
+<div class="slides">
+
+  <!-- 01 · TITLE -->
+  <div class="slide title-slide active">
+    <div class="kicker">D4X Session 01</div>
+    <h1>Wick UI<br><span class="accent">Sync</span></h1>
+    <p style="margin-top: 1.5rem; max-width: 620px;">What's new, how to get the most out of it, and how to work with us.</p>
+  </div>
+
+  <!-- 02 · SPEAKERS -->
+  <div class="slide">
+    <div class="kicker">Who's presenting</div>
+    <h2>Meet the team</h2>
+    <div class="speakers-row">
+      <div class="speaker"><img src="sifat.png" alt="Sifat" /><div class="speaker-name">Sifat</div><div class="speaker-role">Dev</div></div>
+      <div class="speaker"><img src="farhad.png" alt="Farhad" /><div class="speaker-name">Farhad</div><div class="speaker-role">Dev</div></div>
+      <div class="speaker"><img src="monz.png" alt="Monz" /><div class="speaker-name">Monz</div><div class="speaker-role">Design</div></div>
+    </div>
+  </div>
+
+  <!-- 03 · WHAT IS WICK UI -->
+  <div class="slide">
+    <div class="kicker">The basics</div>
+    <h2>What is <span class="accent">Wick UI?</span></h2>
+    <p style="margin-top: 1.25rem; max-width: 640px;">QuestionPro's component library &amp; utility packages for building React apps — one design system, one API, everywhere.</p>
+    <div class="pkg-grid">
+      <div class="pkg-card"><div class="pkg-name">wick-ui-lib</div><div class="pkg-desc">Core React component library</div></div>
+      <div class="pkg-card"><div class="pkg-name">wick-ui-editor</div><div class="pkg-desc">Rich content editor components</div></div>
+      <div class="pkg-card"><div class="pkg-name">wick-ui-i18n</div><div class="pkg-desc">Translation &amp; i18n utilities</div></div>
+      <div class="pkg-card"><div class="pkg-name">wick-ui-icon</div><div class="pkg-desc">Material + QP icon library</div></div>
+    </div>
+    <p style="margin-top: 1.75rem;">Docs: <a class="link" href="https://wick-ui.questionpro.com" target="_blank">wick-ui.questionpro.com</a></p>
+  </div>
+
+  <!-- 04 · OBJECTIVES -->
+  <div class="slide">
+    <div class="kicker">Why we're here</div>
+    <h2>Today's objectives</h2>
+    <ul class="simple-list">
+      <li>
+        <span class="sl-num">01</span>
+        <div>
+          <div class="sl-title">State of Wick UI, from the devs</div>
+        </div>
+      </li>
+      <li>
+        <span class="sl-num">02</span>
+        <div>
+          <div class="sl-title">Get the best out of Wick UI</div>
+          <div class="sl-desc">Live tour of docs, Storybook, and how to ask for things</div>
+        </div>
+      </li>
+      <li>
+        <span class="sl-num">03</span>
+        <div>
+          <div class="sl-title">Communicate better with Wick UI &amp; design</div>
+          <div class="sl-desc">Bugs, feature requests, questions — all go through <code>#wick-ui-lib</code>. Need more depth? Book the John Wick Session.</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- 05 · DIVIDER: DEV STATE -->
+  <div class="slide divider center">
+    <div class="kicker">The update</div>
+    <h2>State of Wick UI —<br>from the devs</h2>
+  </div>
+
+  <!-- 06 · V2 LIVE -->
+  <div class="slide">
+    <div class="kicker">Wick UI v2.19.0 · live now</div>
+    <h2>v2 is live.</h2>
+    <ul class="cue-list" style="margin-top: 1.75rem; max-width: 640px;">
+      <li>Component customization (Tailwind, <code>wu-*</code> overrides) is now fully deprecated — request changes via <code>#wick-ui-lib</code> instead</li>
+      <li>Every package — lib, editor, i18n, icon — shares one version number, always in sync</li>
+    </ul>
+    <p style="margin-top: 1.5rem; font-size: 0.95rem;">(Also — some portal conflicts from the library changes. Flag them in <code>#wick-ui-lib</code> if you hit one.)</p>
+  </div>
+
+  <!-- 07 · REACT 18 SUNSET -->
+  <div class="slide center">
+    <div class="kicker">Mark your calendar</div>
+    <h1>React 18 support<br>sunsets <span class="accent">end of 2026.</span></h1>
+    <p style="margin-top: 1.75rem; max-width: 560px;">React 19 is done and live. Still on React 18? You have runway — but the clock is running.</p>
+  </div>
+
+  <!-- 08 · MIGRATION PHASE -->
+  <div class="slide">
+    <div class="kicker">Where this is headed</div>
+    <h2>v2 is the<br><span class="accent">migration phase.</span></h2>
+    <ul class="cue-list" style="margin-top: 2.25rem; max-width: 680px;">
+      <li>Base UI, replacing Radix</li>
+      <li>CSS Modules, replacing Tailwind</li>
+      <li>Consistent UI across form components and beyond — roundness, spacing, unified</li>
+      <li>Fewer third-party dependencies, more familiar APIs</li>
+      <li>Small, low-impact breaking changes now and then</li>
+      <li>Building toward a rock-solid v3</li>
+    </ul>
+  </div>
+
+  <!-- 09 · WHAT THIS MEANS FOR YOU -->
+  <div class="slide">
+    <div class="kicker">Translate this</div>
+    <h2>What this means<br>for <span class="accent">you.</span></h2>
+    <ul class="cue-list" style="margin-top: 2.25rem; max-width: 680px;">
+      <li>Fewer dependencies = fewer surprise bugs, faster fixes</li>
+      <li>Custom styling now goes through a request, not a code override — more consistent UI across every team</li>
+      <li>A few small bumps now, in exchange for a stable v3 later</li>
+    </ul>
+  </div>
+
+  <!-- 10 · LIVE DEMO INTRO -->
+  <div class="slide center">
+    <div class="kicker">Live demo</div>
+    <h1>Let's go<br><span class="accent">look at it.</span></h1>
+  </div>
+
+  <!-- 11 · DEMO: DOCS & STORYBOOK -->
+  <div class="slide">
+    <div class="demo-stop"><span class="n">Stop 1</span> · Docs &amp; Storybook</div>
+    <h2>What's there,<br>and how to read it</h2>
+    <p style="margin-top: 1.5rem; max-width: 640px;">Reimagined to lead with code examples over walls of text — every component, every variant, live — and written to be AI-agent friendly.</p>
+    <p style="margin-top: 1rem;"><a class="link" href="https://wick-ui.questionpro.com" target="_blank">wick-ui.questionpro.com</a></p>
+  </div>
+
+  <!-- 12 · DEMO: I18N/TELEMETRY -->
+  <div class="slide">
+    <div class="demo-stop"><span class="n">Stop 2</span> · i18n + Telemetry</div>
+    <h2>The Vite plugin,<br>and what it tracks</h2>
+    <p style="margin-top: 1.5rem; max-width: 640px;">Tracks component + prop usage and package versions at build time — no user data, nothing runtime.</p>
+    <p style="margin-top: 1rem;">Full docs: Storybook → <strong>i18n / Overview</strong></p>
+  </div>
+
+  <!-- 13 · DEMO: REQUESTS -->
+  <div class="slide">
+    <div class="demo-stop"><span class="n">Stop 3</span> · Requests</div>
+    <h2>Reporting bugs<br>&amp; requests</h2>
+    <p style="margin-top: 1.5rem; max-width: 640px;"><code>#wick-ui-lib</code> for everything — bugs, features, questions.</p>
+  </div>
+
+  <!-- 13b · DEMO: AI USAGE -->
+  <div class="slide">
+    <div class="demo-stop"><span class="n">Stop 4</span> · AI Usage</div>
+    <h2>Point your agent<br>at the MCP</h2>
+    <p style="margin-top: 1.5rem; max-width: 640px;">Claude Code, Cursor, Copilot — any MCP client discovers every component, prop, and real usage example live from Storybook. No rules file to keep in sync.</p>
+    <p style="margin-top: 1rem;"><a class="link" href="https://wick-ui.questionpro.com/mcp" target="_blank">wick-ui.questionpro.com/mcp</a></p>
+  </div>
+
+  <!-- 14 · LINKS + ASK -->
+  <div class="slide">
+    <div class="kicker">Take these with you</div>
+    <h2>Everything,<br>in <span class="accent">one place.</span></h2>
+    <ul class="cue-list" style="margin-top: 1.75rem; max-width: 640px;">
+      <li>Docs &amp; Storybook: <a class="link" href="https://wick-ui.questionpro.com" target="_blank">wick-ui.questionpro.com</a></li>
+      <li>MCP: <a class="link" href="https://wick-ui.questionpro.com/mcp" target="_blank">wick-ui.questionpro.com/mcp</a></li>
+      <li>Bugs, features, questions: <code>#wick-ui-lib</code></li>
+      <li>John Wick Session (weekly, bookable): <a class="link" href="https://calendar.app.google/adJNMBmHVS27xy6e8" target="_blank">book a slot</a></li>
+    </ul>
+    <p style="margin-top: 0.75rem; font-style: italic;">Come with your issues. We'll shoot them away.</p>
+    <p style="margin-top: 2rem; max-width: 640px;"><strong>One ask back:</strong> tell us what to build next. Drop it in <code>#wick-ui-lib</code>.</p>
+  </div>
+
+  <!-- 15 · SHOUTOUT -->
+  <div class="slide">
+    <div class="kicker">A quick thanks</div>
+    <h2>Shoutout to the<br>teams on the <span class="accent">bleeding edge.</span></h2>
+    <div class="team-row">
+      <div class="team-chip"><div class="name">Admin2</div></div>
+      <div class="team-chip"><div class="name">Empower</div></div>
+      <div class="team-chip"><div class="name">CLF</div></div>
+      <div class="team-chip"><div class="name">Middleware</div></div>
+    </div>
+    <p style="margin-top: 2rem; max-width: 680px;">You run the latest version and hit the bugs first. We know that's frustrating — but you finding them early is what keeps everyone else's upgrade smooth. Thank you.</p>
+  </div>
+
+  <!-- 16 · CLOSE -->
+  <div class="slide center">
+    <div class="kicker">Open floor</div>
+    <h1>Questions?</h1>
+  </div>
+
+</div>
+
+<div class="progress-bar" id="progress"></div>
+
+<nav class="slide-nav">
+  <button id="prev" aria-label="Previous slide">←</button>
+  <button id="next" aria-label="Next slide">→</button>
+</nav>
+<div class="slide-counter" id="counter"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const progress = document.getElementById('progress');
+  const counter = document.getElementById('counter');
+  let cur = 0;
+  function show(n) {
+    slides[cur].classList.remove('active');
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    counter.textContent = `${cur + 1} / ${slides.length}`;
+    progress.style.width = `${((cur + 1) / slides.length) * 100}%`;
+  }
+  document.getElementById('next').onclick = () => show(cur + 1);
+  document.getElementById('prev').onclick  = () => show(cur - 1);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(cur + 1); }
+    if (e.key === 'ArrowLeft') show(cur - 1);
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(slides.length - 1);
+  });
+  show(0);
+</script>
+</body>
+</html>
