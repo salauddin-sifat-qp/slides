@@ -377,6 +377,56 @@
 
   /* Top progress bar */
   .progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: var(--accent); width: 0; z-index: 100; transition: width 0.35s cubic-bezier(.2,.8,.2,1); }
+
+  /* Productivity Paradox slide */
+  .paradox-wrap { display: flex; flex-direction: column; gap: 2rem; margin-top: 2.5rem; width: 100%; max-width: 720px; }
+  .paradox-metrics { display: flex; gap: 2rem; }
+  .paradox-metric { flex: 1; border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem 1.75rem; background: var(--surface); display: flex; flex-direction: column; gap: 0.4rem; }
+  .paradox-metric.dim { opacity: 0.95; }
+  .paradox-metric.lit { border-color: var(--accent); background: oklch(61.6% 0.1696 251.2 / 6%); }
+  .paradox-metric-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-muted); }
+  .paradox-metric.lit .paradox-metric-label { color: var(--accent); }
+  .paradox-metric-value { font-size: 3rem; font-weight: 700; color: var(--fg); letter-spacing: -0.03em; line-height: 1; }
+  .paradox-metric.lit .paradox-metric-value { color: var(--accent); }
+  .paradox-metric-sub { font-size: 0.88rem; color: var(--fg-muted); margin-top: 0.25rem; line-height: 1.4; }
+  .paradox-pipeline { display: flex; align-items: stretch; gap: 0; width: 100%; }
+  .paradox-step { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; padding: 0.55rem 0.5rem; border: 1.5px solid var(--border); border-radius: 8px; background: var(--surface); }
+  .paradox-step.fast { border-color: var(--accent); background: oklch(61.6% 0.1696 251.2 / 8%); }
+  .paradox-step-name { font-size: 0.8rem; font-weight: 700; color: var(--fg-muted); white-space: nowrap; }
+  .paradox-step.fast .paradox-step-name { color: var(--accent); }
+  .paradox-step-tag { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); background: oklch(61.6% 0.1696 251.2 / 18%); padding: 0.1rem 0.3rem; border-radius: 4px; }
+  .paradox-step-slow { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); }
+  .paradox-arr { font-size: 0.9rem; color: var(--border); padding: 0 0.3rem; flex-shrink: 0; align-self: center; }
+  .paradox-quote { font-size: 1.15rem; font-style: italic; color: var(--fg-muted); border-left: 3px solid var(--accent); padding-left: 1.1rem; line-height: 1.55; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .slide.active .paradox-metrics { animation: riseIn 0.55s ease 0.15s both; }
+    .slide.active .paradox-pipeline { animation: riseIn 0.55s ease 0.38s both; }
+    .slide.active .paradox-quote { animation: riseIn 0.5s ease 0.62s both; }
+  }
+
+  /* AI-native engineer flow slide */
+  .eng-flow-wrap { display: flex; flex-direction: column; gap: 2.75rem; margin-top: 2.25rem; width: 100%; }
+  .eng-row { display: flex; align-items: center; gap: 1.25rem; }
+  .eng-row-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-muted); width: 80px; flex-shrink: 0; line-height: 1.4; }
+  .eng-row-label.is-native { color: var(--accent); }
+  .eng-pipeline { display: flex; align-items: stretch; flex: 1; gap: 0; }
+  .eng-step { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; padding: 0.55rem 0.75rem; border: 2px solid var(--border); border-radius: 10px; flex: 1; background: var(--surface); }
+  .eng-step.dim { opacity: 0.35; }
+  .eng-step.lit { border-color: var(--accent); background: oklch(61.6% 0.1696 251.2 / 8%); }
+  .eng-step.native { border-color: var(--accent); background: oklch(61.6% 0.1696 251.2 / 7%); }
+  .eng-step-badge { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); background: oklch(61.6% 0.1696 251.2 / 18%); padding: 0.1rem 0.35rem; border-radius: 4px; margin-bottom: 0.15rem; }
+  .eng-step-name { font-size: 0.88rem; font-weight: 700; color: var(--fg); white-space: nowrap; }
+  .eng-step.dim .eng-step-name { color: var(--fg-muted); }
+  .eng-step-hint { font-size: 0.68rem; color: var(--fg-muted); text-align: center; line-height: 1.3; margin-top: 0.15rem; }
+  .eng-arr { font-size: 1rem; color: var(--border); padding: 0 0.35rem; flex-shrink: 0; align-self: center; }
+  .eng-arr.is-native { color: var(--accent); opacity: 0.5; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .slide.active .eng-row { animation: riseIn 0.55s ease both; }
+    .slide.active .eng-row:nth-child(1) { animation-delay: 0.15s; }
+    .slide.active .eng-row:nth-child(2) { animation-delay: 0.42s; }
+  }
   </style>
 </head>
 <body>
@@ -531,7 +581,7 @@
     <p style="margin-top: 2rem; max-width: 700px;">Better spec &rarr; better code. Better plan &rarr; fewer rewrites. The leverage compounds at every step.</p>
   </div>
 
-  <!-- 07 · ROADMAP -->
+  <!-- 06 · ROADMAP (was 05) -->
   <div class="slide">
     <div class="kicker">The Program · Beta</div>
     <h2>8 Phases. <span class="accent">36 Sessions.</span></h2>

@@ -2,21 +2,81 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Slides</title>
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 4rem auto; padding: 0 1rem; }
-  h1 { font-size: 1.5rem; }
-  ul { line-height: 2; }
-  a { text-decoration: none; color: #2563eb; }
-  a:hover { text-decoration: underline; }
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem;
+    background: #0f1115;
+    color: #e6e6e6;
+  }
+  h1 {
+    font-size: 1.75rem;
+    margin: 0 0 0.25rem;
+  }
+  p.subtitle {
+    color: #8a8f98;
+    margin: 0 0 2.5rem;
+  }
+  .group {
+    margin-bottom: 2rem;
+  }
+  .group h2 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8a8f98;
+    margin: 0 0 0.75rem;
+  }
+  a.card {
+    display: block;
+    text-decoration: none;
+    color: #e6e6e6;
+    background: #1a1d24;
+    border: 1px solid #2a2e37;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.5rem;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  a.card:hover {
+    border-color: #4a4f5c;
+    background: #20242c;
+  }
+  a.card .title {
+    font-weight: 600;
+  }
+  a.card .desc {
+    color: #8a8f98;
+    font-size: 0.9rem;
+    margin-top: 0.15rem;
+  }
 </style>
 </head>
 <body>
 <h1>Slides</h1>
-<ul>
-  <li><a href="ai_sessions/session_01.html">AI Sessions — session 01</a></li>
-  <li><a href="ai_sessions/session_01_updated.html">AI Sessions — session 01 (updated)</a></li>
-  <li><a href="d4x_sessions/session_01.html">D4X Sessions — session 01</a></li>
-</ul>
+<p class="subtitle">Talk decks and session notes</p>
+
+<div class="group">
+  <h2>AI Sessions</h2>
+  <a class="card" href="ai_sessions/session_01.html">
+    <div class="title">Session 01</div>
+    <div class="desc">AI-native software engineering</div>
+  </a>
+</div>
+
+<div class="group">
+  <h2>D4X Sessions</h2>
+  <a class="card" href="d4x_sessions/session_01.html">
+    <div class="title">Session 01</div>
+    <div class="desc">WickUI / design-team sync</div>
+  </a>
+</div>
+
 </body>
 </html>
