@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&display=swap');
+
+/* ── Colors (from wick-ui) ── */
+:root {
+  --wu-color-gray-lead: oklch(47.8% 0.0244 255);
+  --wu-color-gray-subtle: oklch(68.9% 0 0);
+  --wu-color-gray-switcher: oklch(37.1% 0 0);
+  --wu-color-gray-notification: oklch(45% 0 0);
+  --wu-color-gray-footer: oklch(71.5% 0 0);
+  --wu-color-gray-40: oklch(88.2% 0 0);
+  --wu-color-gray-25: oklch(93.1% 0 0);
+  --wu-color-gray-20: oklch(0% 0 0 / 6%);
+  --wu-color-gray-10: oklch(97% 0 0);
+  --wu-color-blue-p: oklch(61.6% 0.1696 251.2);
+  --wu-color-blue-p-hover: oklch(70.2% 0.1314 247.4);
+  --wu-color-blue-p-hover-deep: oklch(49.5% 0.1695 256.4);
+  --wu-color-blue-q: oklch(35.4% 0.1335 266.3);
+  --wu-color-blue-deep: oklch(45.1% 0.1159 254.5);
+  --wu-color-blue-soft: oklch(93.4% 0.0426 224.9);
+  --wu-color-blue-focus: oklch(79.7% 0.0876 245.5);
+  --wu-color-blue-sidebar: oklch(96.3% 0.012 259.8);
+  --wu-color-blue-sidebar-hover: oklch(91.7% 0.0192 263);
+  --wu-color-blue-switcher: oklch(22% 0.083 258.4);
+  --wu-color-orange-deep: oklch(72.3% 0.1755 56.7);
+  --wu-color-orange-soft: oklch(77.7% 0.1654 73.2);
+  --wu-color-yellow-deep: oklch(54.7% 0.1213 66.6);
+  --wu-color-yellow-soft: oklch(95% 0.0781 95.7);
+  --wu-color-red-deep: oklch(53.1% 0.2178 29.2);
+  --wu-color-red-soft: oklch(85.3% 0.0802 18.9);
+  --wu-color-maroon: oklch(45.3% 0.186 29.2);
+  --wu-color-maroon-hover: oklch(88.5% 0.0593 18.3);
+  --wu-color-green-deep: oklch(49.9% 0.1603 139.9);
+  --wu-color-green-soft: oklch(93.4% 0.0698 124.3);
+
+  /* ── Slide tokens ── */
+  --slide-bg: #fff;
+  --slide-text: var(--wu-color-gray-lead);
+  --slide-text-subtle: var(--wu-color-gray-subtle);
+  --slide-accent: var(--wu-color-blue-p);
+  --slide-accent-deep: var(--wu-color-blue-deep);
+  --slide-border: var(--wu-color-gray-40);
+}
+
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: 'Fira Sans', system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--slide-text);
+  background: var(--slide-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Slideshow layout ── */
+.slides {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.slide.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Typography ── */
+h1 { font-size: 3rem;   font-weight: 700; line-height: 1.15; }
+h2 { font-size: 2.25rem; font-weight: 600; line-height: 1.2;  }
+h3 { font-size: 1.75rem; font-weight: 600; line-height: 1.25; }
+h4 { font-size: 1.25rem; font-weight: 500; }
+p  { font-size: 1.125rem; font-weight: 400; color: var(--slide-text-subtle); }
+
+strong { font-weight: 600; }
+em     { font-style: italic; }
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--slide-text-subtle);
+}
+
+/* ── Utilities ── */
+.text-accent { color: var(--slide-accent); }
+.text-muted  { color: var(--slide-text-subtle); }
+.text-center { text-align: center; }
+
+.slide-nav {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 100;
+}
+
+.slide-nav button {
+  font-family: inherit;
+  font-size: 0.875rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--slide-border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--slide-text);
+  cursor: pointer;
+}
+
+.slide-nav button:hover { background: var(--wu-color-gray-10); }
+
+.slide-counter {
+  position: fixed;
+  bottom: 1.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.8rem;
+  color: var(--slide-text-subtle);
+}
