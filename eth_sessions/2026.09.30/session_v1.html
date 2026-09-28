@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ETH · LivePolls — We Let the Robots Write the Weekly Update</title>
+  <style>
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Fira+Mono:wght@400;500&display=swap');
+
+  /* ============================================================
+     base — wick-ui tokens (QuestionPro)
+     ============================================================ */
+  :root {
+    --wu-color-gray-lead: oklch(47.8% 0.0244 255);
+    --wu-color-gray-subtle: oklch(68.9% 0 0);
+    --wu-color-gray-40: oklch(88.2% 0 0);
+    --wu-color-gray-10: oklch(97% 0 0);
+    --wu-color-blue-p: oklch(61.6% 0.1696 251.2);
+    --wu-color-blue-q: oklch(35.4% 0.1335 266.3);
+    --wu-color-blue-deep: oklch(45.1% 0.1159 254.5);
+    --wu-color-blue-soft: oklch(93.4% 0.0426 224.9);
+    --wu-color-orange-deep: oklch(72.3% 0.1755 56.7);
+    --wu-color-red-deep: oklch(53.1% 0.2178 29.2);
+    --wu-color-maroon: oklch(45.3% 0.186 29.2);
+    --wu-color-green-deep: oklch(49.9% 0.1603 139.9);
+
+    --bg: #fff;
+    --fg: #0f0f0f;
+    --fg-sub: #2e2e2e;
+    --fg-muted: #666;
+    --border: var(--wu-color-gray-40);
+    --surface: #f4f4f6;
+    --accent: var(--wu-color-blue-p);
+    --ai: var(--wu-color-blue-p);
+    --not-ai: var(--wu-color-red-deep);
+    --accent-tint: oklch(61.6% 0.1696 251.2 / 8%);
+    --red-tint: oklch(53.1% 0.2178 29.2 / 7%);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: 'Fira Sans', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--fg);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, .mono { font-family: 'Fira Mono', ui-monospace, monospace; }
+
+  .slides { width: 100vw; height: 100vh; overflow: hidden; position: relative; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+    padding: 4.5rem 7rem;
+    background: var(--bg);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .slide.active { opacity: 1; pointer-events: auto; }
+  .slide.center { align-items: center; text-align: center; }
+  .slide.title-slide { border-left: 6px solid var(--accent); }
+
+  h1 { font-size: 5rem; font-weight: 700; line-height: 1.06; letter-spacing: -0.025em; }
+  h2 { font-size: 3.5rem; font-weight: 600; line-height: 1.1; letter-spacing: -0.015em; }
+  p  { font-size: 1.4rem; color: var(--fg-sub); line-height: 1.6; }
+  .accent { color: var(--accent); }
+  .red { color: var(--not-ai); }
+  .muted { color: var(--fg-muted); }
+
+  .kicker {
+    font-size: 0.85rem; font-weight: 700; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem;
+  }
+
+  .slide.divider { background: var(--accent); }
+  .slide.divider .kicker { color: oklch(100% 0 0 / 70%); }
+  .slide.divider h2 { color: #fff; }
+  .slide.divider .sub { font-size: 1.35rem; color: oklch(100% 0 0 / 70%); margin-top: 0.75rem; }
+
+  /* ── AI / Not AI stamp ── */
+  .stamp {
+    display: inline-block;
+    font-size: 1.1rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 0.35rem 1rem;
+    border: 3px solid currentColor; border-radius: 8px;
+    transform: rotate(-6deg);
+    white-space: nowrap;
+  }
+  .stamp.ai  { color: var(--ai);  background: var(--accent-tint); }
+  .stamp.not { color: var(--not-ai); background: var(--red-tint); }
+  .stamp.later { color: var(--wu-color-orange-deep); background: oklch(72.3% 0.1755 56.7 / 8%); }
+  .stamp.big { font-size: 2.6rem; padding: 0.6rem 2rem; border-width: 5px; border-radius: 14px; }
+  .corner-stamp { position: absolute; top: 3.5rem; right: 5rem; }
+
+  /* ── LIVE cue ── */
+  .live {
+    position: absolute; top: 3.75rem; left: 7rem;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 0.8rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--not-ai);
+  }
+  .live::before {
+    content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--not-ai);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .live::before { animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: 0.25; } }
+  }
+
+  /* ── Terminal ── */
+  .terminal { background: #0e0e0e; border-radius: 12px; padding: 1.4rem 1.9rem; margin-top: 2.25rem; width: 100%; max-width: 760px; text-align: left; }
+  .terminal-bar { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .terminal-dot:nth-child(1) { background: #ff5f57; }
+  .terminal-dot:nth-child(2) { background: #febc2e; }
+  .terminal-dot:nth-child(3) { background: #28c840; }
+  .terminal-line { font-family: 'Fira Mono', monospace; font-size: 1.05rem; line-height: 1.8; color: #ccc; }
+  .t-prompt { color: #528bff; }
+  .t-cmd { color: #efefef; }
+  .t-dim { color: #777; }
+  .t-ok { color: #3ecf6e; }
+  .t-cursor { display: inline-block; width: 2px; height: 1.1em; background: #528bff; vertical-align: text-bottom; margin-left: 2px; animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ── Agenda ── */
+  .agenda { list-style: none; margin-top: 2.25rem; width: 100%; max-width: 860px; }
+  .agenda li { display: flex; gap: 1.5rem; padding: 1.3rem 0; border-bottom: 1px solid var(--border); align-items: baseline; }
+  .agenda li:last-child { border-bottom: none; }
+  .ag-time { font-size: 0.95rem; font-weight: 700; color: var(--accent); width: 80px; flex-shrink: 0; }
+  .ag-title { font-size: 1.3rem; font-weight: 700; }
+  .ag-desc { font-size: 1.05rem; color: var(--fg-muted); margin-top: 0.15rem; }
+
+  /* ── Two-column split ── */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; width: 100%; margin-top: 2.25rem; }
+  .col { border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem 1.75rem; background: var(--surface); position: relative; }
+  .col.ai { border-color: var(--ai); background: var(--accent-tint); }
+  .col.not { border-color: var(--not-ai); background: var(--red-tint); }
+  .col .stamp { position: absolute; top: -1.1rem; right: 1.25rem; background: #fff; }
+  .col h4 { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
+  .col ul { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+  .col li { font-size: 1.05rem; color: var(--fg-sub); line-height: 1.4; }
+  .col li code { font-size: 0.95rem; color: var(--fg); }
+  .col .foot { margin-top: 1.1rem; font-size: 0.95rem; color: var(--fg-muted); font-style: italic; }
+
+  /* ── Rows (commands / hooks / layers) ── */
+  .rows { display: flex; flex-direction: column; margin-top: 2.25rem; width: 100%; max-width: 900px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 1.5rem; padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .row:last-child { border-bottom: none; }
+  .row-key { font-family: 'Fira Mono', monospace; font-size: 1.15rem; font-weight: 500; color: var(--accent); width: 190px; flex-shrink: 0; }
+  .row-key.red { color: var(--not-ai); }
+  .row-desc { font-size: 1.1rem; color: var(--fg-sub); flex: 1; }
+  .row-tag { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); border: 1px solid var(--border); background: #fff; border-radius: 4px; padding: 0.2rem 0.55rem; white-space: nowrap; }
+  .row-tag.hot { color: var(--accent); border-color: var(--accent); }
+
+  /* ── Lightning round ── */
+  .lightning { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 3rem; margin-top: 2.25rem; width: 100%; max-width: 980px; }
+  .ln { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.9rem 0; border-bottom: 1px dashed var(--border); }
+  .ln span { font-size: 1.3rem; font-weight: 500; }
+  .ln .stamp { font-size: 0.85rem; }
+
+  /* ── Flow ── */
+  .flow { display: flex; align-items: stretch; gap: 0; margin-top: 2.5rem; width: 100%; max-width: 1000px; }
+  .flow-step { flex: 1; border: 2px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; background: var(--surface); text-align: left; }
+  .flow-step.lit { border-color: var(--accent); background: var(--accent-tint); }
+  .flow-step .n { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+  .flow-step .t { font-size: 1.2rem; font-weight: 700; margin-top: 0.2rem; }
+  .flow-step .d { font-size: 0.95rem; color: var(--fg-muted); margin-top: 0.3rem; line-height: 1.4; }
+  .flow-arr { align-self: center; font-size: 1.4rem; color: var(--fg-muted); padding: 0 0.6rem; }
+
+  /* ── Embedding map ── */
+  .emb { display: flex; gap: 3rem; align-items: center; margin-top: 2.25rem; width: 100%; }
+  .emb-map { position: relative; width: 460px; height: 300px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); flex-shrink: 0; }
+  .emb-dot { position: absolute; transform: translate(-50%, -50%); font-size: 1rem; font-weight: 600; padding: 0.25rem 0.7rem; border-radius: 999px; border: 2px solid var(--border); background: #fff; white-space: nowrap; }
+  .emb-dot.a { border-color: var(--accent); color: var(--wu-color-blue-deep); }
+  .emb-dot.b { border-color: var(--wu-color-orange-deep); color: oklch(45% 0.13 56); }
+  .emb-vec { font-family: 'Fira Mono', monospace; font-size: 1.05rem; color: var(--fg-sub); line-height: 2; }
+  .emb-vec b { color: var(--accent); font-weight: 500; }
+
+  /* ── Scoreboard ── */
+  .score { width: 100%; max-width: 900px; margin-top: 2rem; border-collapse: collapse; }
+  .score th, .score td { text-align: left; padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--border); font-size: 1.15rem; }
+  .score th { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-muted); }
+  .score td:first-child { font-weight: 600; }
+  .score td.blank { color: var(--border); font-family: 'Fira Mono', monospace; }
+  .score tr.base td { color: var(--accent); }
+
+  /* ── Big quote / one-liner ── */
+  .oneliner { margin-top: 2rem; font-family: 'Fira Mono', monospace; font-size: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 8px; padding: 1.1rem 1.4rem; color: var(--fg-sub); text-align: left; max-width: 980px; }
+  .oneliner b { color: var(--fg); font-weight: 500; }
+
+  /* ── Kudos ── */
+  .kudos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 2.5rem; width: 100%; max-width: 1000px; }
+  .kudo { border: 1px solid var(--border); border-radius: 14px; padding: 1.4rem 1.5rem; background: var(--surface); text-align: left; }
+  .kudo .n { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+  .kudo .t { font-size: 1.35rem; font-weight: 700; margin-top: 0.3rem; }
+  .kudo .d { font-size: 1rem; color: var(--fg-muted); margin-top: 0.4rem; line-height: 1.45; }
+
+  /* ── Nav chrome ── */
+  .slide-nav { position: fixed; bottom: 1.5rem; right: 1.5rem; display: flex; gap: 0.5rem; z-index: 100; }
+  .slide-nav button { font-family: inherit; font-size: 1.1rem; padding: 0.4rem 0.9rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--fg-muted); cursor: pointer; }
+  .slide-nav button:hover { color: var(--fg); }
+  .slide-counter { position: fixed; bottom: 1.75rem; left: 50%; transform: translateX(-50%); font-size: 0.85rem; color: var(--fg-muted); }
+  .progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: var(--accent); width: 0; z-index: 100; transition: width 0.35s cubic-bezier(.2,.8,.2,1); }
+
+  /* ── Motion ── */
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes riseIn  { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+    @keyframes stampIn { 0% { opacity: 0; transform: rotate(-6deg) scale(2.2); } 70% { opacity: 1; transform: rotate(-6deg) scale(0.94); } 100% { transform: rotate(-6deg) scale(1); } }
+
+    .slide.active .kicker { animation: riseIn 0.5s ease both; }
+    .slide.active h1, .slide.active h2 { animation: riseIn 0.6s cubic-bezier(.2,.7,.2,1) 0.05s both; }
+    .slide.active > p, .slide.active .terminal, .slide.active .split, .slide.active .rows,
+    .slide.active .flow, .slide.active .emb, .slide.active .score, .slide.active .oneliner,
+    .slide.active .agenda, .slide.active .lightning, .slide.active .kudos-grid { animation: riseIn 0.6s ease 0.18s both; }
+    .slide.active .stamp { animation: stampIn 0.45s cubic-bezier(.2,.8,.2,1) 0.45s both; }
+    .slide.active .ln:nth-child(n) .stamp { animation-delay: calc(0.4s + var(--i, 0) * 0.12s); }
+  }
+  </style>
+</head>
+<body>
+
+<div class="slides">
+
+  <!-- 01 · TITLE -->
+  <div class="slide title-slide active">
+    <div class="kicker">Engineering Townhall · LivePolls · Sep 30, 2026</div>
+    <h1>We Let the Robots<br>Write the <span class="accent">Weekly Update</span></h1>
+    <p style="margin-top: 1.5rem;"><em>(and other confessions)</em> · Sifat</p>
+  </div>
+
+  <!-- 02 · THE GAME -->
+  <div class="slide center">
+    <div class="kicker">House rule for the next 30 minutes</div>
+    <h2>Everything gets a stamp.</h2>
+    <div style="display: flex; gap: 4rem; margin-top: 3rem;">
+      <span class="stamp ai big">AI</span>
+      <span class="stamp not big">Not AI</span>
+    </div>
+    <p style="margin-top: 3rem; max-width: 720px;">Knowing when <em>not</em> to use AI is half the skill. There will be a quiz. Of course there will be a quiz. It's LivePolls.</p>
+  </div>
+
+  <!-- 03 · AGENDA -->
+  <div class="slide">
+    <div class="kicker">Today</div>
+    <h2>Four confessions, one quiz, one hero.</h2>
+    <ul class="agenda">
+      <li><span class="ag-time">01</span><div><div class="ag-title">Nobody writes the weekly update anymore</div><div class="ag-desc">/weekly-update, live, straight into Slack</div></div></li>
+      <li><span class="ag-time">02</span><div><div class="ag-title">We still don't let AI format our code</div><div class="ag-desc">AI commands vs husky guardrails</div></div></li>
+      <li><span class="ag-time">03</span><div><div class="ag-title">We have an idea we haven't built</div><div class="ag-desc">The LivePolls Library: embeddings, vector DB, RAG</div></div></li>
+      <li><span class="ag-time">04</span><div><div class="ag-title">The system prompt matters more than you think</div><div class="ag-desc">Live A/B on a real bug</div></div></li>
+    </ul>
+  </div>
+
+  <!-- ─────────── CONFESSION 1 ─────────── -->
+  <div class="slide divider center">
+    <div class="kicker">Confession #1</div>
+    <h2>Nobody writes the<br>weekly update anymore.</h2>
+    <div class="sub">It writes itself. We just proofread.</div>
+  </div>
+
+  <!-- 05 · LIVE KICKOFF -->
+  <div class="slide">
+    <span class="live">Live</span>
+    <span class="stamp ai corner-stamp">AI</span>
+    <div class="kicker">Kicking it off now</div>
+    <h2>One command. Then we wait.</h2>
+    <div class="terminal">
+      <div class="terminal-bar"><div class="terminal-dot"></div><div class="terminal-dot"></div><div class="terminal-dot"></div></div>
+      <div class="terminal-line"><span class="t-prompt">ruby ❯</span> <span class="t-cmd">/weekly-update skip tests</span><span class="t-cursor"></span></div>
+      <div class="terminal-line t-dim">→ radar bugs · total users · 500s · query perf · commits → #livepolls-bd</div>
+    </div>
+    <p style="margin-top: 2rem;">Tests skipped because nobody wants to watch Playwright boot on a projector.</p>
+  </div>
+
+  <!-- 06 · NOT A MAGIC BUTTON -->
+  <div class="slide">
+    <div class="kicker">While it cooks</div>
+    <h2>Not a magic button.<br>A <span class="accent">296-line</span> prompt.</h2>
+    <div class="rows">
+      <div class="row"><span class="row-key">Never guess</span><span class="row-desc">No data? Print <code>SKIPPED</code>. A fake number is worse than no number.</span></div>
+      <div class="row"><span class="row-key">Real authors</span><span class="row-desc">Credit comes from the PR's commits, not whoever clicked "merge".</span></div>
+      <div class="row"><span class="row-key">Deploy stage</span><span class="row-desc">In <code>prod</code>? Production. In <code>master</code> only? Staging. Open? In Progress.</span></div>
+      <div class="row"><span class="row-key">Drop the noise</span><span class="row-desc">Lint fixes, version bumps, flaky-test patches: not announcement-worthy.</span></div>
+    </div>
+  </div>
+
+  <!-- 07 · SH VS AI INSIDE WEEKLY-UPDATE -->
+  <div class="slide">
+    <div class="kicker">Look inside</div>
+    <h2>Even our AI command<br>mostly isn't AI.</h2>
+    <div class="split">
+      <div class="col not">
+        <span class="stamp not">Not AI</span>
+        <h4>Shell scripts: the numbers</h4>
+        <ul>
+          <li><code>radar-bugs.sh</code> · <code>total-users.sh</code></li>
+          <li><code>500-errors.sh</code> · <code>query-perf.sh</code></li>
+          <li><code>run-tests.sh</code> (four suites, in parallel)</li>
+          <li><code>build-blocks.js</code> → <code>post-slack.sh</code></li>
+        </ul>
+        <div class="foot">Same input, same output. Every time.</div>
+      </div>
+      <div class="col ai">
+        <span class="stamp ai">AI</span>
+        <h4>The model: the judgment</h4>
+        <ul>
+          <li>Is this commit worth announcing?</li>
+          <li>Feat, Fix, or Engineering?</li>
+          <li>Turn <code>fix(edit-app): nav trigger</code> into a sentence a PM reads</li>
+        </ul>
+        <div class="foot">The parts where a human would have to think.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 08 · WHY -->
+  <div class="slide center">
+    <div class="kicker">Why split it</div>
+    <h1>LLMs are great at <span class="accent">judgment</span>.<br>Terrible at <span class="red">counting</span>.</h1>
+    <p style="margin-top: 2rem; max-width: 760px;">You wouldn't ask the intern to retype a SQL result by hand. Don't ask the model either. Scripts fetch, the model writes.</p>
+  </div>
+
+  <!-- 09 · IT LANDED -->
+  <div class="slide center">
+    <span class="live" style="left: 50%; transform: translateX(-50%);">Live · #livepolls-bd</span>
+    <div class="kicker" style="margin-top: 2rem;">Back to Slack</div>
+    <h2>It landed.</h2>
+    <p style="margin-top: 1.5rem; max-width: 720px;">Now pick any bullet in that thread and ask: <em>how did this commit get written in the first place?</em></p>
+  </div>
+
+  <!-- ─────────── CONFESSION 2 ─────────── -->
+  <div class="slide divider center">
+    <div class="kicker">Confession #2</div>
+    <h2>We still don't let AI<br>format our code.</h2>
+    <div class="sub">On purpose.</div>
+  </div>
+
+  <!-- 11 · AI COMMANDS -->
+  <div class="slide">
+    <span class="stamp ai corner-stamp">AI</span>
+    <div class="kicker">Where AI earns its tokens</div>
+    <h2>Three commands.<br>Three different brains.</h2>
+    <div class="rows">
+      <div class="row"><span class="row-key">/commit</span><span class="row-desc">Split staged changes into conventional commits, one per scope</span><span class="row-tag">haiku · cheap</span></div>
+      <div class="row"><span class="row-key">/pr</span><span class="row-desc">Push, fill our PR template, open the PR</span><span class="row-tag hot">sonnet</span></div>
+      <div class="row"><span class="row-key">/pr-check</span><span class="row-desc">Template + CLAUDE.md checklist, CI log triage, inline review</span><span class="row-tag hot">sonnet</span></div>
+    </div>
+    <p style="margin-top: 1.75rem;">Don't send a senior architect to write a commit message.</p>
+  </div>
+
+  <!-- 12 · LIVE COMMIT/PR -->
+  <div class="slide">
+    <span class="live">Live</span>
+    <div class="kicker">Watch it</div>
+    <h2>Stage. Commit. PR. Check.</h2>
+    <div class="terminal">
+      <div class="terminal-bar"><div class="terminal-dot"></div><div class="terminal-dot"></div><div class="terminal-dot"></div></div>
+      <div class="terminal-line"><span class="t-prompt">ruby ❯</span> <span class="t-cmd">/commit</span></div>
+      <div class="terminal-line t-ok">✓ fix(edit-app): show nav trigger on mobile</div>
+      <div class="terminal-line t-ok">✓ docs: update weekly-update notes</div>
+      <div class="terminal-line"><span class="t-prompt">ruby ❯</span> <span class="t-cmd">/pr</span></div>
+      <div class="terminal-line"><span class="t-prompt">ruby ❯</span> <span class="t-cmd">/pr-check</span><span class="t-cursor"></span></div>
+    </div>
+  </div>
+
+  <!-- 13 · PR-CHECK FORMAT -->
+  <div class="slide">
+    <div class="kicker">/pr-check house style</div>
+    <h2>One line. What, why, fix.<br><span class="muted">No essays.</span></h2>
+    <div class="oneliner"><b>Migration has no down()</b> — rollback on regional DBs will fail. Fix: add down() dropping answer_text.</div>
+    <div class="oneliner"><b>CI e2e failed on ENOTFOUND mysql-test</b> — runner infra, not your code. Fix: re-run the job.</div>
+    <p style="margin-top: 1.75rem;">Posted as inline review comments. Never approves, never blocks. It advises.</p>
+  </div>
+
+  <!-- 14 · HUSKY -->
+  <div class="slide">
+    <span class="stamp not corner-stamp">Not AI</span>
+    <div class="kicker">Where AI is not invited</div>
+    <h2>Husky does the boring,<br>for free, forever.</h2>
+    <div class="rows">
+      <div class="row"><span class="row-key red">pre-commit</span><span class="row-desc"><code>lint-staged</code>: lint + format only the files you touched</span></div>
+      <div class="row"><span class="row-key red">commit-msg</span><span class="row-desc"><code>commitlint</code>: conventional commits or it bounces</span></div>
+      <div class="row"><span class="row-key red">pre-push</span><span class="row-desc">Runs only the tests related to what you changed</span></div>
+    </div>
+    <p style="margin-top: 1.75rem;">Deterministic. Instant. Zero tokens. Never hallucinates a semicolon.</p>
+  </div>
+
+  <!-- 15 · THE RULE + LIGHTNING -->
+  <div class="slide">
+    <div class="kicker">The rule</div>
+    <h2>If a guardrail can do it,<br>AI doesn't.</h2>
+    <div class="lightning">
+      <div class="ln" style="--i:0"><span>Format the code</span><span class="stamp not">Not AI</span></div>
+      <div class="ln" style="--i:1"><span>Write the commit message</span><span class="stamp ai">AI</span></div>
+      <div class="ln" style="--i:2"><span>Count total users</span><span class="stamp not">Not AI</span></div>
+      <div class="ln" style="--i:3"><span>Triage a 2,000-line CI log</span><span class="stamp ai">AI</span></div>
+      <div class="ln" style="--i:4"><span>Enforce commit format</span><span class="stamp not">Not AI</span></div>
+      <div class="ln" style="--i:5"><span>Summarize the week</span><span class="stamp ai">AI</span></div>
+    </div>
+  </div>
+
+  <!-- 16 · CTA -->
+  <div class="slide center">
+    <div class="kicker">Yours tomorrow</div>
+    <h2><code>git pull</code></h2>
+    <div class="terminal" style="max-width: 620px;">
+      <div class="terminal-bar"><div class="terminal-dot"></div><div class="terminal-dot"></div><div class="terminal-dot"></div></div>
+      <div class="terminal-line t-dim">ruby/.claude/commands/</div>
+      <div class="terminal-line">├── <span class="t-cmd">weekly-update.md</span></div>
+      <div class="terminal-line">├── <span class="t-cmd">commit.md</span></div>
+      <div class="terminal-line">├── <span class="t-cmd">pr.md</span></div>
+      <div class="terminal-line">└── <span class="t-cmd">pr-check.md</span></div>
+    </div>
+  </div>
+
+  <!-- ─────────── CONFESSION 3 ─────────── -->
+  <div class="slide divider center">
+    <div class="kicker">Confession #3</div>
+    <h2>We have an idea<br>we haven't built.</h2>
+    <div class="sub">No demo. Just ambition and three definitions.</div>
+  </div>
+
+  <!-- 18 · TODAY: LIVE GEN -->
+  <div class="slide">
+    <span class="live">Live · LivePolls</span>
+    <span class="stamp ai corner-stamp">AI</span>
+    <div class="kicker">What we have today</div>
+    <h2>Attach a file.<br>Get questions.</h2>
+    <p style="margin-top: 1.75rem; max-width: 800px;">Right now: I'm feeding <em>this deck</em> to LivePolls' AI generator. Six questions. They're your quiz in 15 minutes.</p>
+    <p style="margin-top: 0.75rem; max-width: 800px;" class="muted">If a question is wrong, blame the AI. If it's too easy, blame me.</p>
+  </div>
+
+  <!-- 19 · THE PROBLEM -->
+  <div class="slide center">
+    <div class="kicker">The catch</div>
+    <h1>"10 questions from<br>chapter 4, please."</h1>
+    <p style="margin-top: 2rem; max-width: 780px;">Today the model re-reads the <em>whole</em> 300-page book. Every time. Ask again, pay again, wait again.</p>
+  </div>
+
+  <!-- 20 · EMBEDDING -->
+  <div class="slide">
+    <div class="kicker">Definition 1 of 3</div>
+    <h2><span class="accent">Embedding</span>: meaning, as numbers.</h2>
+    <div class="emb">
+      <div class="emb-map">
+        <span class="emb-dot a" style="left: 22%; top: 28%;">photosynthesis</span>
+        <span class="emb-dot a" style="left: 36%; top: 48%;">chlorophyll</span>
+        <span class="emb-dot a" style="left: 20%; top: 66%;">sunlight</span>
+        <span class="emb-dot b" style="left: 76%; top: 30%;">invoice</span>
+        <span class="emb-dot b" style="left: 70%; top: 70%;">refund</span>
+      </div>
+      <div>
+        <div class="emb-vec">"chlorophyll" → <b>[0.12, -0.83, 0.44, …]</b></div>
+        <div class="emb-vec">"invoice" → <b>[-0.71, 0.09, -0.22, …]</b></div>
+        <p style="margin-top: 1.25rem; max-width: 440px;">Similar meaning, nearby numbers. "Chlorophyll" lives next to "sunlight", far from "refund".</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 21 · VECTOR DB -->
+  <div class="slide">
+    <div class="kicker">Definition 2 of 3</div>
+    <h2><span class="accent">Vector DB</span>: Ctrl+F for meaning.</h2>
+    <div class="rows">
+      <div class="row"><span class="row-key">Stores</span><span class="row-desc">Every chunk of the book, as an embedding</span></div>
+      <div class="row"><span class="row-key">Finds</span><span class="row-desc">The chunks <em>closest in meaning</em> to your question, in milliseconds</span></div>
+      <div class="row"><span class="row-key">Embedded</span><span class="row-desc">Lives inside the app as a file. No extra server to babysit.</span></div>
+    </div>
+  </div>
+
+  <!-- 22 · RAG -->
+  <div class="slide">
+    <div class="kicker">Definition 3 of 3</div>
+    <h2><span class="accent">RAG</span>: look it up, then answer.</h2>
+    <div class="flow">
+      <div class="flow-step"><div class="n">R · Retrieve</div><div class="t">Find the chunks</div><div class="d">Vector DB returns chapter 4's relevant pages</div></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step"><div class="n">A · Augment</div><div class="t">Stuff the prompt</div><div class="d">Only those pages go to the model, not all 300</div></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step lit"><div class="n">G · Generate</div><div class="t">Write the quiz</div><div class="d">Grounded in your book, not the model's memory</div></div>
+    </div>
+    <p style="margin-top: 2rem;">Open-book exam instead of a memory test.</p>
+  </div>
+
+  <!-- 23 · LIBRARY -->
+  <div class="slide">
+    <span class="stamp later corner-stamp">AI, later</span>
+    <div class="kicker">The idea</div>
+    <h2>The LivePolls <span class="accent">Library</span></h2>
+    <div class="flow">
+      <div class="flow-step"><div class="n">Once</div><div class="t">Upload</div><div class="d">Your books, PDFs, docs</div></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step"><div class="n">Once</div><div class="t">Index</div><div class="d">Chunk, embed, store</div></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step lit"><div class="n">Forever</div><div class="t">Ask</div><div class="d">"10 Qs, chapter 4": fast, and different every time</div></div>
+    </div>
+    <div class="rows" style="max-width: 1000px;">
+      <div class="row"><span class="row-key">Step 1</span><span class="row-desc">PDF &amp; docs</span></div>
+      <div class="row"><span class="row-key">Step 2</span><span class="row-desc">Chapters &amp; sections as first-class targets</span></div>
+      <div class="row"><span class="row-key">Step 3</span><span class="row-desc">Audio &amp; video: quiz from last week's lecture</span></div>
+    </div>
+  </div>
+
+  <!-- 24 · ASK -->
+  <div class="slide center">
+    <div class="kicker">The ask</div>
+    <h1>POC in <span class="accent">Q4</span>.<br>Send us your use case.</h1>
+    <p style="margin-top: 2rem; max-width: 700px;">What would you upload first? Tell us, and it goes on the list.</p>
+  </div>
+
+  <!-- ─────────── CONFESSION 4 ─────────── -->
+  <div class="slide divider center">
+    <div class="kicker">Confession #4</div>
+    <h2>The system prompt matters<br>more than you think.</h2>
+    <div class="sub">Same model. Very different engineer.</div>
+  </div>
+
+  <!-- 26 · LAYERS -->
+  <div class="slide">
+    <div class="kicker">What the model actually reads</div>
+    <h2>Three layers.<br>Most people only touch one.</h2>
+    <div class="rows">
+      <div class="row"><span class="row-key">System prompt</span><span class="row-desc"><strong>How</strong> the agent behaves: rules, discipline, output style</span><span class="row-tag hot">this talk</span></div>
+      <div class="row"><span class="row-key">CLAUDE.md</span><span class="row-desc"><strong>What</strong> the project is: stack, commands, conventions</span><span class="row-tag">context</span></div>
+      <div class="row"><span class="row-key">Your message</span><span class="row-desc"><strong>What</strong> you want right now</span><span class="row-tag">task</span></div>
+    </div>
+  </div>
+
+  <!-- 27 · GENERIC VS MINE -->
+  <div class="slide">
+    <div class="kicker">Default vs tuned</div>
+    <h2>Claude Code's prompt is<br>written for <span class="red">everyone</span>.</h2>
+    <div class="split">
+      <div class="col">
+        <h4>Stock Claude Code</h4>
+        <ul>
+          <li>Generic software-engineering rules</li>
+          <li>Tuned for the average user</li>
+          <li>Tends to add "helpful" extras</li>
+        </ul>
+      </div>
+      <div class="col ai">
+        <h4>My 176-line system prompt</h4>
+        <ul>
+          <li>Read before you edit. Evidence over assumption.</li>
+          <li>Smallest correct change. No drive-by refactors.</li>
+          <li>Verify once, at the end. Then stop.</li>
+          <li>Terse output. Three lines, not three paragraphs.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 28 · A/B LIVE -->
+  <div class="slide">
+    <span class="live">Live · A/B</span>
+    <div class="kicker">Same bug, two agents</div>
+    <h2>"Nav trigger doesn't show<br>on mobile. Fix it."</h2>
+    <table class="score">
+      <thead><tr><th></th><th>Files touched</th><th>Lines changed</th><th>Tokens out</th></tr></thead>
+      <tbody>
+        <tr class="base"><td>The human fix (c13be28a2)</td><td>2</td><td>+15 −1</td><td>—</td></tr>
+        <tr><td>Stock Claude Code</td><td class="blank">__</td><td class="blank">__</td><td class="blank">__</td></tr>
+        <tr><td>pi + system prompt</td><td class="blank">__</td><td class="blank">__</td><td class="blank">__</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top: 1.5rem;" class="muted">Real bug from last week, reverted on a demo branch. Closest to the human wins.</p>
+  </div>
+
+  <!-- 29 · TAKEAWAY -->
+  <div class="slide center">
+    <div class="kicker">Steal this</div>
+    <h2>Write the rules once.<br>Stop repeating them every prompt.</h2>
+    <div class="terminal" style="max-width: 760px;">
+      <div class="terminal-bar"><div class="terminal-dot"></div><div class="terminal-dot"></div><div class="terminal-dot"></div></div>
+      <div class="terminal-line"><span class="t-prompt">❯</span> <span class="t-cmd">claude --append-system-prompt-file ./rules.md</span></div>
+    </div>
+    <p style="margin-top: 1.75rem; max-width: 760px;">Is it pi or the prompt? Both. But the prompt is the part you can copy tomorrow.</p>
+  </div>
+
+  <!-- 30 · RECAP -->
+  <div class="slide">
+    <div class="kicker">Recap</div>
+    <h2>Four confessions, stamped.</h2>
+    <div class="lightning">
+      <div class="ln" style="--i:0"><span>Weekly update prose</span><span class="stamp ai">AI</span></div>
+      <div class="ln" style="--i:1"><span>Weekly update numbers</span><span class="stamp not">Not AI</span></div>
+      <div class="ln" style="--i:2"><span>Commit / PR / PR check</span><span class="stamp ai">AI</span></div>
+      <div class="ln" style="--i:3"><span>Lint / format / commitlint</span><span class="stamp not">Not AI</span></div>
+      <div class="ln" style="--i:4"><span>The Library</span><span class="stamp later">AI, later</span></div>
+      <div class="ln" style="--i:5"><span>Your system prompt</span><span class="stamp ai">You</span></div>
+    </div>
+  </div>
+
+  <!-- ─────────── LIVEPOLL ─────────── -->
+  <div class="slide divider center">
+    <div class="kicker">LivePoll · 5 minutes</div>
+    <h2>Your turn.</h2>
+    <div class="sub">Six questions, written by LivePolls AI 15 minutes ago. Fastest correct answers win.</div>
+  </div>
+
+  <!-- ─────────── KUDOS ─────────── -->
+  <div class="slide">
+    <div class="kicker">Kudos</div>
+    <h2><span class="accent">Musa</span> put LivePolls inside<br>other people's products.</h2>
+    <div class="kudos-grid">
+      <div class="kudo"><div class="n">LTI</div><div class="t">Canvas &amp; Moodle</div><div class="d">Resource-link binding, and nobody can hijack a grade passback on his watch.</div></div>
+      <div class="kudo"><div class="n">OAuth bridge</div><div class="t">Google Slides</div><div class="d">Iframe API bridge so presenters stay logged in inside Slides. With e2e tests.</div></div>
+      <div class="kudo"><div class="n">Auth fix</div><div class="t">Microsoft Teams</div><div class="d">Teams auth iframe fixed, app renamed to its proper "LivePolls".</div></div>
+    </div>
+    <p style="margin-top: 1.75rem;">51 commits in three months. Now imagine him with <code>/commit</code>.</p>
+  </div>
+
+  <!-- THANKS -->
+  <div class="slide center">
+    <div class="kicker">That's it</div>
+    <h1>Thank you.</h1>
+    <p style="margin-top: 1.5rem;">Questions? Stamp them yourself.</p>
+  </div>
+
+  <!-- EMERGENCY (press End) -->
+  <div class="slide center">
+    <div class="kicker">AI or Not AI?</div>
+    <h1>The demo broke.</h1>
+    <div style="margin-top: 2.5rem;"><span class="stamp not big">Not AI</span></div>
+    <p style="margin-top: 2.5rem;">That was me. Rolling the recording.</p>
+  </div>
+
+</div>
+
+<div class="progress-bar" id="progress"></div>
+
+<nav class="slide-nav">
+  <button id="prev" aria-label="Previous slide">←</button>
+  <button id="next" aria-label="Next slide">→</button>
+</nav>
+<div class="slide-counter" id="counter"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const progress = document.getElementById('progress');
+  const counter = document.getElementById('counter');
+  let cur = 0;
+  function show(n) {
+    slides[cur].classList.remove('active');
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    counter.textContent = `${cur + 1} / ${slides.length}`;
+    progress.style.width = `${((cur + 1) / slides.length) * 100}%`;
+  }
+  document.getElementById('next').onclick = () => show(cur + 1);
+  document.getElementById('prev').onclick = () => show(cur - 1);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(cur + 1); }
+    if (e.key === 'ArrowLeft') show(cur - 1);
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(slides.length - 1);
+  });
+  show(0);
+</script>
+</body>
+</html>

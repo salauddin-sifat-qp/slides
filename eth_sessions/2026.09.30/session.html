@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ETH · Team LivePolls</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=JetBrains+Mono:wght@500&family=Lato:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+  /* QuestionPro brand, taken from the logo SVG */
+  :root {
+    --navy: #1b3380;
+    --navy-deep: #12235c;
+    --blue: #1b87e6;
+    --paper: #fff;
+    --mist: rgb(255 255 255 / 64%);
+    --rule: rgb(255 255 255 / 14%);
+    --curl: rgb(255 255 255 / 50%);
+
+    --display: 'Archivo', system-ui, sans-serif;
+    --body: 'Archivo', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    --pad-x: 7rem;
+    --curl-size: 7.5rem;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: var(--body);
+    font-variation-settings: 'wdth' 100;
+    line-height: 1.5;
+    color: var(--paper);
+    background: var(--navy-deep);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .slides { width: 100vw; height: 100vh; overflow: hidden; position: relative; }
+
+  /* Every slide is a LivePolls card: navy page, bottom-right corner peeled like the logo mark */
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    padding: 4rem var(--pad-x) 3.5rem;
+    background: radial-gradient(120% 90% at 0% 0%, #22409a 0%, var(--navy) 55%);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--curl-size)), calc(100% - var(--curl-size)) 100%, 0 100%);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .slide.active { opacity: 1; pointer-events: auto; }
+  .slide::after {
+    content: '';
+    position: absolute; right: 0; bottom: 0;
+    width: var(--curl-size); height: var(--curl-size);
+    background: linear-gradient(to top left, transparent 50%, var(--curl) 50%);
+    border-top-left-radius: 1.25rem;
+  }
+
+  .eyebrow {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--mist);
+  }
+
+  /* ── Slide 01 ── */
+  .title {
+    margin-top: auto;
+    font-family: var(--display);
+    font-variation-settings: 'wdth' 125;
+    font-weight: 850;
+    font-size: clamp(4rem, 10.5vw, 10rem);
+    line-height: 0.88;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+  .title .brand { color: var(--blue); display: block; }
+
+  .intro {
+    display: grid; grid-template-columns: auto 1fr; gap: 6rem; align-items: end;
+    margin-top: 3.5rem; padding-top: 2rem;
+    border-top: 1px solid var(--rule);
+    margin-bottom: auto;
+  }
+
+  .team { display: flex; gap: 1.75rem; }
+  .member { display: flex; flex-direction: column; gap: 0.7rem; }
+  .member img {
+    width: 120px; height: 120px; border-radius: 50%;
+    object-fit: cover; object-position: center top;
+    filter: grayscale(1) contrast(1.05);
+    box-shadow: 0 0 0 3px var(--navy), 0 0 0 4px var(--rule);
+  }
+  .member-name { font-weight: 600; font-size: 1.1rem; font-variation-settings: 'wdth' 112; }
+
+  .agenda-label { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); margin-bottom: 0.9rem; }
+  .agenda { list-style: none; counter-reset: a; columns: 2; column-gap: 3.5rem; }
+  .agenda li {
+    counter-increment: a;
+    break-inside: avoid;
+    display: flex; gap: 1rem; align-items: baseline;
+    padding: 0.55rem 0;
+    font-size: 1.3rem; font-weight: 450; color: var(--paper);
+  }
+  .agenda li::before {
+    content: counter(a);
+    font-family: var(--mono); font-size: 0.8rem; color: var(--blue);
+    width: 1ch; flex-shrink: 0;
+  }
+
+  /* ── Shared content slide ── */
+  .h2 {
+    font-family: var(--display);
+    font-variation-settings: 'wdth' 118;
+    font-weight: 800;
+    font-size: 3.4rem;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+  }
+  .h2 .brand { color: var(--blue); }
+  .lede { margin-top: 1.5rem; font-size: 1.3rem; color: var(--mist); max-width: 30rem; }
+  .lede b { color: var(--paper); font-weight: 600; }
+  .body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; padding-bottom: 2.5rem; }
+
+  /* ── Slide 02: the Slack post ── */
+  .post-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 40rem; gap: 4rem; align-items: center; padding-top: 1.5rem; padding-bottom: 5rem; }
+  .slack {
+    --view: calc(100vh - 17rem);
+    height: var(--view);
+    background: #fff; color: #1d1c1d; border-radius: 10px;
+    font-family: 'Lato', system-ui, sans-serif; font-size: 0.88rem; line-height: 1.5;
+    box-shadow: 0 30px 60px -20px rgb(0 0 0 / 45%);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .slack-bar { flex-shrink: 0; padding: 0.7rem 1.1rem; border-bottom: 1px solid #e8e8e8; font-weight: 900; font-size: 0.95rem; }
+  .slack-bar span { color: #616061; font-weight: 400; margin-right: 0.2rem; }
+  .slack-scroll { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+  .slack-scroll::after { content: ''; position: absolute; inset: auto 0 0 0; height: 4rem; background: linear-gradient(transparent, #fff); }
+  .slack-msg { padding: 1rem 1.25rem 3rem; }
+  .slack-msg > b { display: block; font-size: 1rem; margin-bottom: 0.4rem; }
+  .slack-msg ul { list-style: disc; padding-left: 1.4rem; }
+  .slack-msg ul ul { list-style: circle; }
+  .slack-msg ul ul ul { list-style: square; }
+  .slack-msg li { margin: 0.1rem 0; }
+  .slack-msg .gap { height: 0.9rem; }
+  .slack-msg code {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    color: #c01343; background: #f6f6f6; border: 1px solid #e3e3e3; border-radius: 3px; padding: 0 0.25rem;
+  }
+  .slack-msg code.q { color: #1d1c1d; }
+
+  /* ── Slide 03: by hand ── */
+  .sources { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 3rem; border-top: 1px solid var(--rule); }
+  .source { padding: 1.5rem 2rem 1.5rem 0; border-bottom: 1px solid var(--rule); }
+  .source-n { font-family: var(--display); font-variation-settings: 'wdth' 125; font-weight: 800; font-size: 3rem; line-height: 1; color: var(--blue); }
+  .source-t { margin-top: 0.6rem; font-size: 1.15rem; font-weight: 600; }
+  .source-d { margin-top: 0.2rem; font-size: 0.95rem; color: var(--mist); }
+
+  /* ── Slide 04: how the command works ── */
+  .pipe { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-top: 3rem; }
+  .step { border-top: 3px solid var(--rule); padding-top: 1.1rem; }
+  .step.model { border-top-color: var(--blue); }
+  .step-who { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); }
+  .step.model .step-who { color: var(--blue); }
+  .step-t { margin-top: 0.5rem; font-family: var(--display); font-variation-settings: 'wdth' 112; font-weight: 750; font-size: 1.6rem; line-height: 1.1; }
+  .step ul { list-style: none; margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.35rem; }
+  .step li { font-size: 0.98rem; color: var(--mist); }
+  .step code { font-family: var(--mono); font-size: 0.85rem; color: var(--paper); }
+  .pipe-note { margin-top: 2.5rem; font-size: 1.15rem; color: var(--mist); }
+  .pipe-note b { color: var(--paper); font-weight: 600; }
+
+  /* ── Section 2: when to use AI ── */
+  .stamp {
+    display: inline-block; flex-shrink: 0;
+    font-family: var(--mono); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 0.3rem 0.7rem; border: 2px solid currentColor; border-radius: 4px;
+    transform: rotate(-4deg); white-space: nowrap;
+  }
+  .stamp.ai { color: var(--paper); background: var(--blue); border-color: var(--blue); }
+  .stamp.not { color: var(--paper); background: transparent; }
+  .stamp.big { font-size: 1.1rem; padding: 0.45rem 1rem; border-width: 3px; }
+  .h2-row { display: flex; align-items: flex-start; gap: 2rem; }
+
+  .xform { list-style: none; margin-top: 3rem; display: flex; flex-direction: column; border-top: 1px solid var(--rule); }
+  .xform li { display: grid; grid-template-columns: 1fr 2rem 1fr; gap: 1.5rem; align-items: center; padding: 1.2rem 0; border-bottom: 1px solid var(--rule); }
+  .xform .commit { font-family: var(--mono); font-size: 1.05rem; color: var(--paper); }
+  .xform .arrow { color: var(--blue); font-size: 1.4rem; text-align: center; }
+  .xform .sentence { font-size: 1.15rem; color: var(--mist); }
+
+  .board { display: grid; grid-template-columns: 1fr 1fr; column-gap: 4rem; margin-top: 2.75rem; border-top: 1px solid var(--rule); }
+  .board-row { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 1rem 0; border-bottom: 1px solid var(--rule); }
+  .board-task { font-size: 1.2rem; }
+  .board-task code { display: block; margin-top: 0.15rem; font-family: var(--mono); font-size: 0.85rem; color: var(--mist); }
+
+  .hooks { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
+  .hook { border-top: 3px solid var(--rule); padding-top: 1.1rem; }
+  .hook-when { font-family: var(--mono); font-size: 0.8rem; color: var(--blue); }
+  .hook-name { margin-top: 0.3rem; font-family: var(--display); font-variation-settings: 'wdth' 112; font-weight: 750; font-size: 1.7rem; }
+  .hook ul { list-style: none; margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .hook li { font-size: 1.05rem; color: var(--mist); }
+  .hook li b { color: var(--paper); font-weight: 600; font-family: var(--mono); font-size: 0.95rem; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: stretch; margin-top: 2.75rem; }
+  .panel { border: 1px solid var(--rule); border-radius: 10px; padding: 1.4rem 1.6rem; display: flex; flex-direction: column; }
+  .panel.strong { border-color: var(--blue); background: rgb(27 135 230 / 8%); }
+  .panel-top { display: flex; justify-content: space-between; align-items: center; }
+  .panel-label { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); }
+  .panel pre { margin-top: 1.1rem; font-family: var(--mono); font-size: 0.95rem; line-height: 1.7; white-space: pre-wrap; color: var(--paper); }
+  .panel pre .c { color: var(--mist); }
+  .panel pre .e { color: #ff8a80; }
+  .panel pre .k { color: var(--blue); }
+  .panel-verdict { margin-top: auto; padding-top: 1.75rem; font-size: 1.15rem; }
+  .panel-verdict span { color: var(--mist); }
+  .loop { margin-top: 1.75rem; font-family: var(--mono); font-size: 0.95rem; color: var(--mist); }
+  .loop b { color: var(--paper); font-weight: 500; }
+
+  .code {
+    background: var(--navy-deep); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 1.4rem 1.6rem; font-family: var(--mono); font-size: 0.95rem; line-height: 1.75;
+    white-space: pre; color: var(--paper); overflow: hidden;
+  }
+  .code .c { color: var(--mist); }
+  .code .k { color: var(--blue); }
+  .code-cap { margin-top: 0.7rem; font-family: var(--mono); font-size: 0.75rem; color: var(--mist); }
+  .bash-layout .h2-row { flex-direction: column; gap: 1.25rem; }
+  .bash-layout .h2 { white-space: nowrap; font-size: 3rem; }
+  .bash-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+  .reasons { list-style: none; margin-top: 2rem; display: flex; flex-direction: column; gap: 0.8rem; }
+  .reasons li { font-size: 1.2rem; display: grid; grid-template-columns: 8rem 1fr 1fr; gap: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--rule); }
+  .reasons li span:first-child { color: var(--mist); }
+  .reasons li span:last-child { color: var(--mist); }
+  .reasons li.head span { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); }
+  .protip { margin-top: 2rem; font-size: 1.15rem; color: var(--mist); }
+  .protip b { color: var(--blue); font-weight: 600; }
+
+  /* ── Section 3: the idea ── */
+  .lms { display: flex; gap: 1.25rem; margin-top: 3rem; }
+  .lms span { font-family: var(--display); font-variation-settings: 'wdth' 118; font-weight: 750; font-size: 1.6rem; padding: 0.8rem 1.6rem; border: 1px solid var(--rule); border-radius: 999px; }
+
+  .uploads { list-style: none; margin-top: 2.75rem; display: flex; flex-direction: column; gap: 0.6rem; max-width: 46rem; }
+  .uploads li { display: grid; grid-template-columns: 7rem 1fr auto; align-items: center; gap: 1.25rem; padding: 0.8rem 1.2rem; border: 1px solid var(--rule); border-radius: 8px; background: rgb(255 255 255 / 3%); }
+  .uploads .day { font-family: var(--mono); font-size: 0.8rem; color: var(--mist); text-transform: uppercase; letter-spacing: 0.1em; }
+  .uploads .file { font-family: var(--mono); font-size: 1.05rem; }
+  .uploads .ask { font-size: 0.95rem; color: var(--mist); }
+  .uploads li:nth-child(n+2) { opacity: 0.8; }
+  .uploads li:nth-child(n+3) { opacity: 0.6; }
+  .uploads li:nth-child(n+4) { opacity: 0.4; }
+
+  .benefits { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 3rem; }
+  .benefit { border-top: 3px solid var(--blue); padding-top: 1.1rem; }
+  .benefit-t { font-family: var(--display); font-variation-settings: 'wdth' 112; font-weight: 750; font-size: 1.6rem; line-height: 1.15; }
+  .benefit-d { margin-top: 0.6rem; font-size: 1.1rem; color: var(--mist); }
+
+  .def-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; padding-bottom: 2.5rem; }
+  .def-n { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); margin-bottom: 1rem; }
+
+  .emb-map { position: relative; height: 22rem; border: 1px solid var(--rule); border-radius: 12px; background: rgb(255 255 255 / 3%); }
+  .emb-cluster { position: absolute; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); }
+  .emb-dot { position: absolute; transform: translate(-50%, -50%); font-size: 1rem; font-weight: 600; padding: 0.3rem 0.8rem; border-radius: 999px; white-space: nowrap; }
+  .emb-dot.a { background: var(--blue); color: var(--paper); }
+  .emb-dot.b { border: 1px solid var(--mist); color: var(--mist); }
+  .emb-vec { margin-top: 1.75rem; font-family: var(--mono); font-size: 1rem; line-height: 2; color: var(--mist); }
+  .emb-vec b { color: var(--paper); font-weight: 500; }
+
+  .query { margin-top: 2.5rem; font-family: var(--mono); font-size: 1.1rem; padding: 0.9rem 1.2rem; border: 1px solid var(--blue); border-radius: 8px; background: rgb(27 135 230 / 10%); }
+  .query span { color: var(--mist); margin-right: 0.6rem; }
+  .hits { list-style: none; margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .hits li { display: grid; grid-template-columns: 1fr 4rem; gap: 1rem; align-items: center; padding: 0.75rem 1.2rem; border: 1px solid var(--rule); border-radius: 8px; font-size: 1.05rem; }
+  .hits .score { font-family: var(--mono); font-size: 0.9rem; color: var(--blue); text-align: right; }
+  .hits li.miss > span { opacity: 0.45; }
+  .hits li.miss .score { color: var(--mist); }
+  .hits-cap { margin-top: 0.7rem; font-family: var(--mono); font-size: 0.75rem; color: var(--mist); }
+
+  /* Section 4: system prompt */
+  .layers { list-style: none; margin-top: 3rem; display: flex; flex-direction: column; border-top: 1px solid var(--rule); }
+  .layers li { display: grid; grid-template-columns: 16rem 1fr auto; gap: 2rem; align-items: baseline; padding: 1.25rem 0; border-bottom: 1px solid var(--rule); }
+  .layers .who { font-family: var(--display); font-variation-settings: 'wdth' 112; font-weight: 750; font-size: 1.5rem; }
+  .layers li.top .who { color: var(--blue); }
+  .layers .what { font-size: 1.2rem; color: var(--mist); }
+  .layers .what b { color: var(--paper); font-weight: 600; }
+  .layers .tag { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mist); }
+
+  .prompts { list-style: none; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .prompts li { font-family: var(--mono); font-size: 0.95rem; padding: 0.7rem 1rem; border: 1px solid var(--rule); border-radius: 8px; }
+  .prompts li span { color: var(--mist); margin-right: 0.75rem; }
+
+  .score { width: 100%; margin-top: 2.5rem; border-collapse: collapse; }
+  .score th, .score td { text-align: left; padding: 1rem 1.5rem 1rem 0; border-bottom: 1px solid var(--rule); font-size: 1.25rem; }
+  .score th { font-family: var(--mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mist); }
+  .score td:first-child { font-weight: 600; }
+  .score td.blank { color: var(--rule); font-family: var(--mono); }
+  .score tr.base td { color: var(--blue); }
+  .score td small { display: block; font-size: 0.9rem; font-weight: 400; color: var(--mist); }
+
+  /* Kudos + LivePoll */
+  .kudos-head { display: flex; align-items: center; gap: 2.5rem; }
+  .kudos-head img { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; object-position: center top; filter: grayscale(1) contrast(1.05); box-shadow: 0 0 0 3px var(--navy), 0 0 0 5px var(--blue); }
+  .kudos { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-top: 3rem; }
+  .kudo { border-top: 3px solid var(--blue); padding-top: 1rem; }
+  .kudo-t { font-family: var(--display); font-variation-settings: 'wdth' 112; font-weight: 750; font-size: 1.45rem; line-height: 1.15; }
+  .kudo-d { margin-top: 0.5rem; font-size: 1rem; color: var(--mist); }
+  .finale { margin: auto 0; }
+  .finale .title { margin-top: 0; }
+
+  /* ── Slide 05: live ── */
+  .cmd {
+    font-family: var(--mono); font-size: clamp(2.5rem, 6vw, 5.5rem); font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .cmd .prompt { color: var(--blue); margin-right: 0.4em; }
+  .cmd .caret { display: inline-block; width: 0.08em; height: 0.9em; background: var(--blue); vertical-align: -0.08em; margin-left: 0.08em; }
+
+  /* ── Chrome ── */
+  .watermark { position: fixed; left: var(--pad-x); bottom: 1.9rem; height: 22px; opacity: 0.55; z-index: 10; pointer-events: none; }
+  .slide-counter {
+    position: fixed; right: 1.3rem; bottom: 1.2rem; z-index: 10;
+    font-family: var(--mono); font-size: 0.8rem; color: var(--mist);
+  }
+  .progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: var(--blue); width: 0; z-index: 10; transition: width 0.35s cubic-bezier(.2,.8,.2,1); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes rise { from { opacity: 0; transform: translateY(1.5rem); } to { opacity: 1; transform: none; } }
+    @keyframes widen { from { font-variation-settings: 'wdth' 62; opacity: 0; } to { font-variation-settings: 'wdth' 125; opacity: 1; } }
+    .slide.active .title { animation: widen 0.9s cubic-bezier(.2,.8,.2,1) both; }
+    .slide.active .intro { animation: rise 0.6s ease 0.45s both; }
+
+    /* the post is long: let it scroll by itself */
+    @keyframes read { 0%, 2% { transform: none; } 92%, 100% { transform: translateY(calc(-100% + var(--view) - 3rem)); } }
+    .slide.active .slack-msg { animation: read 38s ease-in-out 0.3s infinite alternate; }
+    .slide.active .h2, .slide.active .lede { animation: rise 0.6s ease both; }
+    .slide.active .source, .slide.active .step { animation: rise 0.5s ease both; }
+    .slide.active .source:nth-child(2), .slide.active .step:nth-child(2) { animation-delay: 0.08s; }
+    .slide.active .source:nth-child(3), .slide.active .step:nth-child(3) { animation-delay: 0.16s; }
+    .slide.active .source:nth-child(4), .slide.active .step:nth-child(4) { animation-delay: 0.24s; }
+    .slide.active .source:nth-child(5) { animation-delay: 0.32s; }
+    .slide.active .source:nth-child(6) { animation-delay: 0.40s; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .slide.active .caret { animation: blink 1s step-end infinite; }
+    .slide.active .xform li, .slide.active .board-row, .slide.active .hook, .slide.active .reasons li { animation: rise 0.5s ease both; }
+    .slide.active .xform li:nth-child(2), .slide.active .hook:nth-child(2), .slide.active .reasons li:nth-child(2) { animation-delay: 0.1s; }
+    .slide.active .xform li:nth-child(3), .slide.active .hook:nth-child(3), .slide.active .reasons li:nth-child(3) { animation-delay: 0.2s; }
+    .slide.active .reasons li:nth-child(4) { animation-delay: 0.3s; }
+    .slide.active .reasons li:nth-child(5) { animation-delay: 0.4s; }
+    @keyframes stampIn { 0% { opacity: 0; transform: rotate(-4deg) scale(2); } 70% { opacity: 1; transform: rotate(-4deg) scale(0.95); } 100% { transform: rotate(-4deg) scale(1); } }
+    .slide.active .stamp { animation: stampIn 0.4s cubic-bezier(.2,.8,.2,1) calc(0.4s + var(--i, 0) * 0.15s) both; }
+    .slide.active .code, .slide.active .panel, .slide.active .loop, .slide.active .protip { animation: rise 0.6s ease 0.15s both; }
+    .slide.active .panel.strong { animation-delay: 0.3s; }
+    .slide.active .lms span, .slide.active .uploads li, .slide.active .benefit { animation: rise 0.5s ease both; }
+    .slide.active .lms span:nth-child(2), .slide.active .uploads li:nth-child(2), .slide.active .benefit:nth-child(2) { animation-delay: 0.12s; }
+    .slide.active .lms span:nth-child(3), .slide.active .uploads li:nth-child(3), .slide.active .benefit:nth-child(3) { animation-delay: 0.24s; }
+    .slide.active .uploads li:nth-child(4) { animation-delay: 0.36s; }
+    @keyframes pop { from { opacity: 0; transform: translate(-50%, -50%) scale(0.6); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+    .slide.active .emb-dot { animation: pop 0.45s cubic-bezier(.2,.8,.2,1) calc(0.2s + var(--i, 0) * 0.08s) both; }
+    .slide.active .query, .slide.active .emb-vec { animation: rise 0.5s ease 0.2s both; }
+    .slide.active .hits li { animation: rise 0.45s ease calc(0.5s + var(--i, 0) * 0.12s) both; }
+    .slide.active .layers li, .slide.active .prompts li { animation: rise 0.5s ease calc(0.15s + var(--i, 0) * 0.1s) both; }
+    .slide.active .score { animation: rise 0.6s ease 0.2s both; }
+    .slide.active .kudos-head { animation: rise 0.6s ease both; }
+    .slide.active .kudo { animation: rise 0.5s ease calc(0.3s + var(--i, 0) * 0.1s) both; }
+  }
+  </style>
+</head>
+<body>
+
+<div class="slides">
+
+  <!-- 01 · TEAM + AGENDA -->
+  <section class="slide active">
+    <div class="eyebrow"><span>Engineering Townhall</span><span>30 Sep 2026</span></div>
+    <h1 class="title">Team<span class="brand">LivePolls</span></h1>
+    <div class="intro">
+      <div class="team">
+        <div class="member"><img src="sifat.png" alt="Sifat" /><span class="member-name">Sifat</span></div>
+        <div class="member"><img src="musa.png" alt="Musa" /><span class="member-name">Musa</span></div>
+      </div>
+      <div>
+        <div class="agenda-label">What we'll talk about</div>
+        <ol class="agenda">
+          <li>Our engineering update workflow</li>
+          <li>When to use AI</li>
+          <li>When not to use AI</li>
+          <li>An idea of ours: LivePolls Library</li>
+          <li>The importance of a system prompt</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 · THE UPDATE -->
+  <section class="slide">
+    <div class="eyebrow"><span>1 · Engineering update workflow</span><span>#livepolls</span></div>
+    <div class="post-layout">
+      <div>
+        <h2 class="h2">Every week,<br>this goes to<br><span class="brand">Slack.</span></h2>
+        <p class="lede">Users, bugs, errors, slow queries, test coverage, and every change we shipped. <b>One post, every week.</b></p>
+      </div>
+      <div class="slack">
+        <div class="slack-bar"><span>#</span>livepolls</div>
+        <div class="slack-scroll">
+          <div class="slack-msg">
+            <b>Engineering weekly updates: <code class="q">Sep 21–25, 2026</code></b>
+            <ul>
+              <li><b>Total Users</b>
+                <ul>
+                  <li>Total: <code class="q">37,606</code> (US: 35,463 / EU: 1,511 / CA: 203 / AU: 300 / AE: 129)</li>
+                  <li>New this week: <code class="q">91</code> (US: 78 / EU: 7 / CA: 0 / AU: 5 / AE: 1)</li>
+                </ul>
+              </li>
+            </ul>
+            <div class="gap"></div>
+            <ul>
+              <li><b>Radar Bug Count:</b> <code class="q">0</code></li>
+              <li><b>500 Errors:</b> <code class="q">0</code></li>
+            </ul>
+            <div class="gap"></div>
+            <ul>
+              <li><b>Query Performance Breakdown</b>
+                <ul>
+                  <li>Total <code class="q">161,275</code> queries:
+                    <ul>
+                      <li>50–100 ms: 58 (0.34%)</li>
+                      <li>100–200 ms: 37 (0.37%)</li>
+                      <li>200–500 ms: 4 (0.02%)</li>
+                      <li>500–1000 ms: 1 (0.00%)</li>
+                      <li>&gt;1000 ms: 1 (0.02%)</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <div class="gap"></div>
+            <ul>
+              <li><b>Top 3 Slowest Queries</b>
+                <ul>
+                  <li><code class="q">select * from respondent where email_address = ? order by id desc</code>
+                    <ul><li>Avg Latency: <code class="q">1,882.96 ms</code></li><li>Plan: missing index on email_address, select * pulls unneeded columns too</li></ul>
+                  </li>
+                  <li><code class="q">select count(*) as count from livepoll inner join user_preference as up on livepoll.user_id = up.user_id where up.email not like ? and livepoll.created_at &gt;= ? and livepoll.created_at &lt;= ?</code>
+                    <ul><li>Avg Latency: <code class="q">677.80 ms</code></li><li>Plan: missing composite index on livepoll(created_at, user_id), NOT LIKE prevents index use on email</li></ul>
+                  </li>
+                  <li><code class="q">select * from livepoll_session_snapshot where live_poll_session_id = ?</code>
+                    <ul><li>Avg Latency: <code class="q">249.00 ms</code></li><li>Plan: missing index on live_poll_session_id, select * over-fetches snapshot blob column</li></ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <div class="gap"></div>
+            <ul>
+              <li><b>Test Cases &amp; Coverage</b>
+                <ul>
+                  <li>Presenter App<ul><li>Test Cases: <code class="q">1,456</code></li><li>Coverage (Lines): <code class="q">86.22%</code></li></ul></li>
+                  <li>Respondent App<ul><li>Test Cases: <code class="q">471</code></li><li>Coverage (Lines): <code class="q">89.71%</code></li></ul></li>
+                  <li>Server (e2e)<ul><li>Test Cases: <code class="q">929</code></li><li>Coverage (Lines): <code class="q">83.41%</code></li></ul></li>
+                  <li>Playwright<ul><li>Total API Calls: <code class="q">109</code></li><li>Api Coverage: <code class="q">100%</code> (Excluded integration and exposed apis for third party)</li></ul></li>
+                </ul>
+              </li>
+            </ul>
+            <div class="gap"></div>
+            <ul>
+              <li><b>EQC Scores</b><ul><li>V1.2: <code class="q">High</code></li><li>V1.3: <code class="q">High</code></li></ul></li>
+              <li><b>wick-ui-lib Version:</b> <code class="q">2.21.0</code></li>
+              <li><b>Task Updates</b>
+                <ul>
+                  <li><b>Feat</b>
+                    <ul>
+                      <li>Added instructions text to the word cloud answer screen for respondents <code>Production</code></li>
+                      <li>Added a workspace switcher to the Google Slides LivePolls list <code>In Progress</code></li>
+                      <li>Added Google Meet meeting-app integration, reworked to match the Teams meeting integration pattern <code>In Progress</code></li>
+                    </ul>
+                  </li>
+                  <li><b>Fixes</b>
+                    <ul>
+                      <li>Fixed the mobile main layout not showing its navigation trigger on the edit app <code>Production</code></li>
+                      <li>Fixed a layout bug causing main-app content to overflow instead of scrolling correctly <code>Production</code></li>
+                      <li>Fixed 3 Microsoft Teams Store certification must-fix items: a dead Terms of Use link, a non-compliant app description, and a missing account-dependency disclosure <code>In Progress</code></li>
+                      <li>Fixed a security issue in the Google Slides integration where an unverified stored origin could be used as the API base URL <code>In Progress</code></li>
+                      <li>Fixed inconsistent shared UI component library versions across apps causing icon and accessibility-label mismatches <code>In Progress</code></li>
+                      <li>Fixed a crash risk in the respondent app's PIN-entry screen from state updates after the component unmounted <code>In Progress</code></li>
+                      <li>Fixed the respondent app failing to load when local storage held corrupted session data <code>In Progress</code></li>
+                    </ul>
+                  </li>
+                  <li><b>Engineering</b>
+                    <ul>
+                      <li>Migrated the entire monorepo (server, all client apps, playwright, load-testing) to a unified pnpm workspace with a shared dependency catalog <code>In Progress</code></li>
+                      <li>Replaced Prettier with oxfmt as the single formatter and consolidated ESLint into one root config, adding stylelint with enforced property ordering <code>In Progress</code></li>
+                      <li>Retired the old Azure/Heroku CI pipeline and rewrote PR checks around a single required status gate <code>In Progress</code></li>
+                      <li>Removed a circular dependency between the shared UI component library and the edit app <code>In Progress</code></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 · BY HAND -->
+  <section class="slide">
+    <div class="eyebrow"><span>1 · Engineering update workflow</span><span>By hand</span></div>
+    <div class="body">
+      <h2 class="h2">Doing it by hand is<br><span class="brand">tedious.</span></h2>
+      <div class="sources">
+        <div class="source"><div class="source-n">5</div><div class="source-t">Datacenters</div><div class="source-d">US, EU, CA, AU, AE: user counts, one Metabase query each</div></div>
+        <div class="source"><div class="source-n">3</div><div class="source-t">More Metabase lookups</div><div class="source-d">Radar bugs, 500 errors, query performance</div></div>
+        <div class="source"><div class="source-n">4</div><div class="source-t">Test suites</div><div class="source-d">Presenter, respondent, server e2e, Playwright</div></div>
+        <div class="source"><div class="source-n">2</div><div class="source-t">Branches to compare</div><div class="source-d"><code>prod</code> vs <code>master</code> decides each change's stage</div></div>
+        <div class="source"><div class="source-n">N</div><div class="source-t">Pull requests</div><div class="source-d">Open each one, find who really wrote it, turn commits into sentences</div></div>
+        <div class="source"><div class="source-n">1</div><div class="source-t">Slack post</div><div class="source-d">Nested bullets that don't collapse into a wall of text</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 · HOW IT WORKS -->
+  <section class="slide">
+    <div class="eyebrow"><span>1 · Engineering update workflow</span><span>How it works</span></div>
+    <div class="body">
+      <h2 class="h2">So we made one command:<br><span class="brand">/weekly-update</span></h2>
+      <ol class="pipe">
+        <li class="step">
+          <div class="step-who">Shell scripts</div>
+          <div class="step-t">Fetch the numbers</div>
+          <ul><li><code>total-users.sh</code></li><li><code>radar-bugs.sh</code></li><li><code>500-errors.sh</code></li><li><code>query-perf.sh</code></li><li><code>run-tests.sh</code></li></ul>
+        </li>
+        <li class="step">
+          <div class="step-who">git + gh</div>
+          <div class="step-t">Find what shipped</div>
+          <ul><li>Merged PRs since Saturday</li><li>In <code>prod</code>: Production</li><li>Only in <code>master</code>: Staging</li><li>Still open: In Progress</li></ul>
+        </li>
+        <li class="step model">
+          <div class="step-who">The model</div>
+          <div class="step-t">Write it up</div>
+          <ul><li>Drop lint and version-bump noise</li><li>Sort into Feat / Fixes / Engineering</li><li>Turn commits into plain sentences</li></ul>
+        </li>
+        <li class="step">
+          <div class="step-who">Scripts again</div>
+          <div class="step-t">Post to Slack</div>
+          <ul><li><code>build-blocks.js</code> builds the bullets</li><li><code>post-slack.sh</code> sends it</li><li>Lands in #livepolls</li></ul>
+        </li>
+      </ol>
+      <p class="pipe-note">Scripts fetch the numbers, the model only writes. <b>No data means SKIPPED, never a guess.</b></p>
+    </div>
+  </section>
+
+  <!-- 05 · LIVE -->
+  <section class="slide">
+    <div class="eyebrow"><span>1 · Engineering update workflow</span><span>Live</span></div>
+    <div class="body">
+      <div class="cmd"><span class="prompt">❯</span>/weekly-update<span class="caret"></span></div>
+    </div>
+  </section>
+
+  <!-- 06 · DID YOU NOTICE -->
+  <section class="slide">
+    <div class="eyebrow"><span>2 · When to use AI, and when not</span><span>Did you notice?</span></div>
+    <div class="body">
+      <h2 class="h2">Did you notice? "What shipped"<br>was written from our <span class="brand">commits.</span></h2>
+      <ul class="xform">
+        <li><span class="commit">fix(edit-app): show nav trigger on mobile main layout</span><span class="arrow">→</span><span class="sentence">Fixed the mobile main layout not showing its navigation trigger on the edit app</span></li>
+        <li><span class="commit">feat(google-slides): add workspace switcher to LivePolls list</span><span class="arrow">→</span><span class="sentence">Added a workspace switcher to the Google Slides LivePolls list</span></li>
+        <li><span class="commit">feat(take-app): add instructions text to word cloud answer screen</span><span class="arrow">→</span><span class="sentence">Added instructions text to the word cloud answer screen for respondents</span></li>
+      </ul>
+      <p class="lede" style="max-width: none;">Good commits in, readable update out. <b>So who made the commits this clean?</b></p>
+    </div>
+  </section>
+
+  <!-- 07 · AI OR NOT AI -->
+  <section class="slide">
+    <div class="eyebrow"><span>2 · When to use AI, and when not</span><span>AI or not AI?</span></div>
+    <div class="body">
+      <h2 class="h2">AI or <span class="brand">not AI?</span></h2>
+      <div class="board">
+        <div class="board-row"><span class="board-task">Write the commit message<code>/commit</code></span><span class="stamp ai" style="--i:0">AI</span></div>
+        <div class="board-row"><span class="board-task">Check the commit format<code>commitlint</code></span><span class="stamp not" style="--i:1">Not AI</span></div>
+        <div class="board-row"><span class="board-task">Format the code<code>oxfmt</code></span><span class="stamp not" style="--i:2">Not AI</span></div>
+        <div class="board-row"><span class="board-task">Describe the PR from its diff<code>/pr</code></span><span class="stamp ai" style="--i:3">AI</span></div>
+        <div class="board-row"><span class="board-task">Catch bugs and bad patterns<code>eslint</code></span><span class="stamp not" style="--i:4">Not AI</span></div>
+        <div class="board-row"><span class="board-task">Review the PR, read failing CI<code>/pr-check</code></span><span class="stamp ai" style="--i:5">AI</span></div>
+        <div class="board-row"><span class="board-task">Enforce CSS tokens and order<code>stylelint</code></span><span class="stamp not" style="--i:6">Not AI</span></div>
+        <div class="board-row"><span class="board-task">Fetch the weekly numbers<code>bash scripts</code></span><span class="stamp not" style="--i:7">Not AI</span></div>
+        <div class="board-row"><span class="board-task">Summarize the week for humans<code>/weekly-update</code></span><span class="stamp ai" style="--i:8">AI</span></div>
+        <div class="board-row"><span class="board-task">Run related tests before push<code>husky pre-push</code></span><span class="stamp not" style="--i:9">Not AI</span></div>
+      </div>
+      <p class="lede" style="max-width: none;">If you can write down the exact steps, <b>it's not AI.</b></p>
+    </div>
+  </section>
+
+  <!-- 08 · HUSKY -->
+  <section class="slide">
+    <div class="eyebrow"><span>2 · When to use AI, and when not</span><span>Husky</span></div>
+    <div class="body">
+      <div class="h2-row"><h2 class="h2">Husky: every commit<br>goes through <span class="brand">the gate.</span></h2><span class="stamp not big">Not AI</span></div>
+      <ol class="hooks">
+        <li class="hook">
+          <div class="hook-when">git commit</div>
+          <div class="hook-name">pre-commit</div>
+          <ul><li><b>lint-staged</b>, staged files only</li><li><b>eslint</b> + <b>oxfmt</b> on .ts / .tsx</li><li><b>stylelint --fix</b> on .css / .scss</li></ul>
+        </li>
+        <li class="hook">
+          <div class="hook-when">git commit</div>
+          <div class="hook-name">commit-msg</div>
+          <ul><li><b>commitlint</b>, conventional commits</li><li>Bad format? The commit bounces.</li></ul>
+        </li>
+        <li class="hook">
+          <div class="hook-when">git push</div>
+          <div class="hook-name">pre-push</div>
+          <ul><li>Maps changed files to their tests</li><li>Runs only those</li></ul>
+        </li>
+      </ol>
+      <p class="lede" style="max-width: none;">Staged files only: the repo still has ~26k old stylelint violations. <b>We fix what we touch.</b></p>
+    </div>
+  </section>
+
+  <!-- 09 · LINTERS > CLAUDE.MD -->
+  <section class="slide">
+    <div class="eyebrow"><span>2 · When to use AI, and when not</span><span>Reliable AI code</span></div>
+    <div class="body">
+    <h2 class="h2">Want reliable AI code? Give it a <span class="brand">linter</span>,<br>not a longer CLAUDE.md.</h2>
+    <div class="split">
+      <div class="panel">
+        <div class="panel-top"><span class="panel-label">CLAUDE.md / skill file</span></div>
+<pre><span class="c">## CSS</span>
+- Use design tokens.
+- No hex colors.
+- Keep property order.</pre>
+        <div class="panel-verdict">A suggestion. <span>Easy to lose in a long session.</span></div>
+      </div>
+      <div class="panel strong">
+        <div class="panel-top"><span class="panel-label">stylelint.config.mjs</span></div>
+<pre><span class="k">'color-no-hex'</span>: true,
+<span class="k">'order/properties-order'</span>: [ … ],
+
+<span class="c">$ git commit</span>
+<span class="e">✖ Unexpected hex color "#1b87e6"  color-no-hex</span></pre>
+        <div class="panel-verdict">A rule. <span>The commit fails, the AI reads the error and fixes it.</span></div>
+      </div>
+    </div>
+    <p class="loop">AI writes <b>→</b> lint fails <b>→</b> AI reads the error <b>→</b> AI fixes it <b>→</b> lint passes</p>
+    </div>
+  </section>
+
+  <!-- 10 · BASH > SKILL -->
+  <section class="slide">
+    <div class="eyebrow"><span>2 · When to use AI, and when not</span><span>Bash vs skill</span></div>
+    <div class="bash-layout">
+      <div>
+        <div class="h2-row"><h2 class="h2">The numbers?<br><span class="brand">10 lines of bash.</span></h2><span class="stamp not big">Not AI</span></div>
+        <ul class="reasons">
+          <li class="head"><span></span><span>Bash</span><span>A skill</span></li>
+          <li><span>Speed</span><span>Milliseconds</span><span>Seconds, minutes</span></li>
+          <li><span>Cost</span><span>Free</span><span>Tokens, every run</span></li>
+          <li><span>Output</span><span>Same every time</span><span>Can drift</span></li>
+          <li><span>Breaks</span><span>Loudly, with a line</span><span>Confidently wrong</span></li>
+        </ul>
+      </div>
+      <div>
+<div class="code"><span class="k">set</span> -euo pipefail
+<span class="c"># since last Saturday</span>
+SINCE=<span class="k">$(</span>date -v-Sat +%Y-%m-%d<span class="k">)</span>
+
+<span class="c"># LivePoll (US) Errors card</span>
+curl -s -X POST \
+  -H <span class="k">"Cookie: metabase.SESSION=$TOKEN"</span> \
+  <span class="k">"$METABASE/api/card/3982/query"</span> \
+| count_rows_matching <span class="k">"500"</span> <span class="k">--since</span> <span class="k">"$SINCE"</span></div>
+        <div class="code-cap">simplified from scripts/weekly-update/500-errors.sh</div>
+        <p class="protip"><b>Pro tip: learn bash.</b> Ask AI to write the script once, then run it forever.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · WE'RE IN THE LMS -->
+  <section class="slide">
+    <div class="eyebrow"><span>3 · An idea of ours: LivePolls Library</span><span>Where we are</span></div>
+    <div class="body">
+      <h2 class="h2">LivePolls is moving<br>into the <span class="brand">classroom.</span></h2>
+      <p class="lede" style="max-width: 44rem;">We're integrating with learning management systems, so teachers run LivePolls right inside their course.</p>
+      <div class="lms"><span>Canvas</span><span>Moodle</span></div>
+    </div>
+  </section>
+
+  <!-- 12 · TODAY -->
+  <section class="slide">
+    <div class="eyebrow"><span>3 · An idea of ours: LivePolls Library</span><span>Today</span></div>
+    <div class="body">
+      <h2 class="h2">Today: upload the PDF.<br><span class="brand">Every single time.</span></h2>
+      <ul class="uploads">
+        <li><span class="day">Monday</span><span class="file">biology-textbook.pdf</span><span class="ask">Quiz on chapter 3</span></li>
+        <li><span class="day">Wednesday</span><span class="file">biology-textbook.pdf</span><span class="ask">Quiz on chapter 4</span></li>
+        <li><span class="day">Friday</span><span class="file">biology-textbook.pdf</span><span class="ask">Chapter 4 again, new questions</span></li>
+        <li><span class="day">Next week</span><span class="file">biology-textbook.pdf</span><span class="ask">…</span></li>
+      </ul>
+      <p class="lede" style="max-width: none;">Same book, uploaded again. <b>The AI reads all of it, from scratch, every time.</b></p>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section class="slide">
+    <div class="eyebrow"><span>3 &middot; An idea of ours: LivePolls Library</span><span>Embeddings</span></div>
+    <div class="def-layout">
+      <div>
+        <div class="def-n">First, three words</div>
+        <h2 class="h2"><span class="brand">Embedding:</span><br>meaning as numbers.</h2>
+        <p class="lede">A model turns a piece of text into a list of numbers. Text with similar meaning gets similar numbers.</p>
+        <div class="emb-vec">"chlorophyll" &rarr; <b>[0.12, -0.83, 0.44, &hellip;]</b><br>"mitosis" &rarr; <b>[-0.71, 0.09, -0.22, &hellip;]</b></div>
+      </div>
+      <div class="emb-map">
+        <span class="emb-cluster" style="left: 1.25rem; top: 1rem;">Chapter 4</span>
+        <span class="emb-cluster" style="right: 1.25rem; bottom: 1rem;">Chapter 5</span>
+        <span class="emb-dot a" style="left: 24%; top: 26%; --i:0">photosynthesis</span>
+        <span class="emb-dot a" style="left: 40%; top: 44%; --i:1">chlorophyll</span>
+        <span class="emb-dot a" style="left: 20%; top: 58%; --i:2">sunlight</span>
+        <span class="emb-dot b" style="left: 74%; top: 46%; --i:3">mitosis</span>
+        <span class="emb-dot b" style="left: 66%; top: 70%; --i:4">chromosome</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- VECTOR DB -->
+  <section class="slide">
+    <div class="eyebrow"><span>3 &middot; An idea of ours: LivePolls Library</span><span>Vector DB</span></div>
+    <div class="def-layout">
+      <div>
+        <h2 class="h2"><span class="brand">Vector DB:</span><br>search by meaning.</h2>
+        <p class="lede">It stores every chunk of the book as an embedding. Ask a question, and it returns the chunks closest in meaning.</p>
+        <p class="lede"><b>Ctrl+F finds words. A vector DB finds meaning.</b></p>
+      </div>
+      <div>
+        <div class="query"><span>ask</span>how do plants make food?</div>
+        <ul class="hits">
+          <li style="--i:0"><span>Ch 4 &middot; Photosynthesis overview</span><span class="score">0.91</span></li>
+          <li style="--i:1"><span>Ch 4 &middot; Chlorophyll and light</span><span class="score">0.88</span></li>
+          <li style="--i:2"><span>Ch 4 &middot; Glucose and energy</span><span class="score">0.84</span></li>
+          <li class="miss" style="--i:3"><span>Ch 5 &middot; Mitosis</span><span class="score">0.21</span></li>
+        </ul>
+        <div class="hits-cap">No word in common with "photosynthesis". Still the top hit.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RAG -->
+  <section class="slide">
+    <div class="eyebrow"><span>3 &middot; An idea of ours: LivePolls Library</span><span>RAG</span></div>
+    <div class="body">
+      <h2 class="h2"><span class="brand">RAG:</span> look it up,<br>then answer.</h2>
+      <ol class="pipe" style="grid-template-columns: repeat(3, 1fr);">
+        <li class="step">
+          <div class="step-who">R &middot; Retrieve</div>
+          <div class="step-t">Find the chunks</div>
+          <ul><li>Vector DB returns the chapter 4 chunks</li></ul>
+        </li>
+        <li class="step">
+          <div class="step-who">A &middot; Augment</div>
+          <div class="step-t">Build the prompt</div>
+          <ul><li>Only those chunks go to the model, not all 300 pages</li></ul>
+        </li>
+        <li class="step model">
+          <div class="step-who">G &middot; Generate</div>
+          <div class="step-t">Write the answer</div>
+          <ul><li>Grounded in the book, not the model's memory</li></ul>
+        </li>
+      </ol>
+      <p class="pipe-note">An open-book exam, <b>not a memory test.</b></p>
+    </div>
+  </section>
+
+  <!-- 13 · THE IDEA -->
+  <section class="slide">
+    <div class="eyebrow"><span>3 · An idea of ours: LivePolls Library</span><span>The idea</span></div>
+    <div class="body">
+      <div class="def-n">Meet LivePolls Library</div>
+      <h2 class="h2">Upload the course once.<br><span class="brand">Quiz from it forever.</span></h2>
+      <ol class="pipe" style="grid-template-columns: repeat(3, 1fr);">
+        <li class="step">
+          <div class="step-who">Once</div>
+          <div class="step-t">Add to the Library</div>
+          <ul><li>Textbooks, PDFs, docs</li><li>Later: lecture audio and video</li></ul>
+        </li>
+        <li class="step">
+          <div class="step-who">Once</div>
+          <div class="step-t">We index it</div>
+          <ul><li>Split into chunks by chapter</li><li>Embed each chunk</li><li>Store in our vector DB</li></ul>
+        </li>
+        <li class="step model">
+          <div class="step-who">Any time</div>
+          <div class="step-t">Ask for a quiz</div>
+          <ul><li>"10 questions from chapter 4"</li><li>RAG pulls only chapter 4</li><li>Fast, and different every time</li></ul>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 14 · COURSE TAKERS -->
+  <section class="slide">
+    <div class="eyebrow"><span>3 · An idea of ours: LivePolls Library</span><span>Why it matters</span></div>
+    <div class="body">
+      <h2 class="h2">Course takers' life,<br><span class="brand">made easy.</span></h2>
+      <ul class="benefits">
+        <li class="benefit"><div class="benefit-t">Any chapter, any time</div><div class="benefit-d">Pick a chapter and practice before the exam. No file hunting.</div></li>
+        <li class="benefit"><div class="benefit-t">A fresh quiz every try</div><div class="benefit-d">New questions each attempt, so they learn the material, not the answers.</div></li>
+        <li class="benefit"><div class="benefit-t">From their own course</div><div class="benefit-d">Questions come from the course material, not the open internet.</div></li>
+      </ul>
+      <p class="lede" style="max-width: none;">Still an idea. <b>Tell us what you'd want from it.</b></p>
+    </div>
+  </section>
+
+  <!-- WHAT IS A SYSTEM PROMPT -->
+  <section class="slide">
+    <div class="eyebrow"><span>4 &middot; The importance of a system prompt</span><span>What it is</span></div>
+    <div class="body">
+      <h2 class="h2">The <span class="brand">system prompt</span>: the rules<br>before your first message.</h2>
+      <ul class="layers">
+        <li class="top" style="--i:0"><span class="who">System prompt</span><span class="what"><b>How</b> the agent behaves: rules, discipline, output style</span><span class="tag">Sent on every call</span></li>
+        <li style="--i:1"><span class="who">CLAUDE.md</span><span class="what"><b>What</b> the project is: stack, commands, conventions</span><span class="tag">Project context</span></li>
+        <li style="--i:2"><span class="who">Your message</span><span class="what"><b>What</b> you want right now</span><span class="tag">The task</span></li>
+      </ul>
+      <p class="lede" style="max-width: none;">The model treats it as the highest-priority instruction. <b>Most people never touch it.</b></p>
+    </div>
+  </section>
+
+  <!-- DEMO: PHI -->
+  <section class="slide">
+    <div class="eyebrow"><span>4 &middot; The importance of a system prompt</span><span>Live &middot; ../phi</span></div>
+    <div class="def-layout">
+      <div>
+        <h2 class="h2">Same question.<br><span class="brand">Different system prompt.</span></h2>
+        <p class="lede">One API call. No tools, no loop. Only the system message changes.</p>
+        <ul class="prompts">
+          <li style="--i:0"><span>1</span>(no system prompt)</li>
+          <li style="--i:1"><span>2</span>One line. Less word, like caveman</li>
+          <li style="--i:2"><span>3</span>Talk like we are babies, explain over and over</li>
+        </ul>
+      </div>
+      <div>
+<div class="code">provider.chat({
+  messages: [
+    {
+      role: <span class="k">"system"</span>,
+      content: <span class="k">"One line. Less word, like caveman"</span>,
+    },
+    {
+      role: <span class="k">"user"</span>,
+      content: <span class="k">"What is an AI agent?"</span>,
+    },
+  ],
+});</div>
+        <div class="code-cap">phi/examples/01-basic-llm/src/index.ts &middot; pnpm 01</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY YOUR OWN -->
+  <section class="slide">
+    <div class="eyebrow"><span>4 &middot; The importance of a system prompt</span><span>Why have your own</span></div>
+    <div class="body">
+      <h2 class="h2">Claude Code's prompt is<br>written for <span class="brand">everyone.</span></h2>
+      <div class="split">
+        <div class="panel">
+          <div class="panel-top"><span class="panel-label">Stock Claude Code</span></div>
+<pre>- General software engineering rules
+- Tuned for the average user
+- Tends to add "helpful" extras</pre>
+          <div class="panel-verdict">Good default. <span>Not your team's rules.</span></div>
+        </div>
+        <div class="panel strong">
+          <div class="panel-top"><span class="panel-label">My system prompt &middot; 176 lines</span></div>
+<pre>- Read the code before changing it
+- Smallest correct change, nothing extra
+- Verify once, at the end, then stop
+- Short answers, no filler</pre>
+          <div class="panel-verdict">Written once. <span>Applied to every single message.</span></div>
+        </div>
+      </div>
+      <p class="loop">Works in Claude Code too: <b>claude --append-system-prompt-file ./rules.md</b></p>
+    </div>
+  </section>
+
+  <!-- DEMO: CLAUDE CODE VS PI -->
+  <section class="slide">
+    <div class="eyebrow"><span>4 &middot; The importance of a system prompt</span><span>Live &middot; A/B</span></div>
+    <div class="body">
+      <h2 class="h2">Same bug. <span class="brand">Two agents.</span></h2>
+      <p class="lede" style="max-width: none;">"The nav trigger doesn't show on mobile. Fix it." A real fix from last week, reverted on a demo branch.</p>
+      <table class="score">
+        <thead><tr><th></th><th>Files touched</th><th>Lines changed</th><th>Time</th></tr></thead>
+        <tbody>
+          <tr class="base"><td>The human fix<small>c13be28a2</small></td><td>2</td><td>+15 &minus;1</td><td>&mdash;</td></tr>
+          <tr><td>Claude Code<small>default system prompt</small></td><td class="blank">__</td><td class="blank">__</td><td class="blank">__</td></tr>
+          <tr><td>pi<small>my system prompt</small></td><td class="blank">__</td><td class="blank">__</td><td class="blank">__</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- KUDOS -->
+  <section class="slide">
+    <div class="eyebrow"><span>Kudos</span><span>Integrations</span></div>
+    <div class="body">
+      <div class="kudos-head">
+        <img src="musa.png" alt="Musa" />
+        <h2 class="h2">Kudos, <span class="brand">Musa.</span><br>LivePolls, everywhere.</h2>
+      </div>
+      <ul class="kudos">
+        <li class="kudo" style="--i:0"><div class="kudo-t">LMS</div><div class="kudo-d">Canvas and Moodle through LTI, plus a fix so nobody can hijack a grade passback</div></li>
+        <li class="kudo" style="--i:1"><div class="kudo-t">Google Meet</div><div class="kudo-d">A new meeting-app integration, reworked to match the Teams pattern</div></li>
+        <li class="kudo" style="--i:2"><div class="kudo-t">Microsoft Teams</div><div class="kudo-d">Meeting stage support and the Store review must-fix items</div></li>
+        <li class="kudo" style="--i:3"><div class="kudo-t">The OAuth fix</div><div class="kudo-d">Login popups that failed silently, and a Slides bridge stealing the Teams login code</div></li>
+      </ul>
+      <p class="lede" style="max-width: none;">Classrooms, meetings, slides: LivePolls now shows up wherever people are. <b>Thank you, Musa.</b></p>
+    </div>
+  </section>
+
+  <!-- LIVEPOLL -->
+  <section class="slide">
+    <div class="eyebrow"><span>LivePoll</span><span>5 minutes</span></div>
+    <div class="finale">
+      <h2 class="title">Let's do<span class="brand">LivePolls now!</span></h2>
+    </div>
+  </section>
+
+</div>
+
+<img class="watermark" src="questionpro-logo-white.svg" alt="QuestionPro" />
+<div class="progress-bar" id="progress"></div>
+<div class="slide-counter" id="counter"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const progress = document.getElementById('progress');
+  const counter = document.getElementById('counter');
+  let cur = 0;
+  function show(n) {
+    slides[cur].classList.remove('active');
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    counter.textContent = `${cur + 1}/${slides.length}`;
+    progress.style.width = `${((cur + 1) / slides.length) * 100}%`;
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); show(cur + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') show(cur - 1);
+    if (e.key === 'Home') show(0);
+    if (e.key === 'End') show(slides.length - 1);
+  });
+  document.addEventListener('click', e => show(e.clientX > innerWidth / 2 ? cur + 1 : cur - 1));
+  show(0);
+</script>
+</body>
+</html>
